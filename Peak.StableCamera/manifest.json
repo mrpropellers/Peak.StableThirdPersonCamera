@@ -1,0 +1,9 @@
+{
+ "name": "StableCamera",
+ "version_number": "1.1.0",
+ "website_url": "https://github.com/linkoid/Peak.StableCamera",
+ "description": "Stabilizes the camera wobble and uses contextual third-person views to prevent motion sickness.",
+ "dependencies": [
+  "BepInEx-BepInExPack_PEAK-5.4.2403"
+ ]
+}
