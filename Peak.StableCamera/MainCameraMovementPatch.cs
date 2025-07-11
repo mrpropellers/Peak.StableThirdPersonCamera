@@ -36,8 +36,19 @@ internal static class MainCameraMovementPatch
 
             // Apply ragdollCam rotation
             __instance.physicsRot = Quaternion.Lerp(__instance.physicsRot, Character.localCharacter.GetBodypartRig(BodypartType.Head).transform.rotation, Time.deltaTime * 10f);
-            __instance.transform.rotation = Quaternion.Lerp(__instance.transform.rotation, __instance.physicsRot, __instance.ragdollCam * StableCamera.Config.DizzyEffectStrength.Value); // Changed
-            __instance.transform.Rotate(GamefeelHandler.instance.GetRotation(), Space.World);
+            // Changed
+            if (!StableCamera.Config.ThirdPersonRagdoll.Value)
+            {
+                __instance.transform.rotation = Quaternion.Lerp(
+                    __instance.transform.rotation,
+                    __instance.physicsRot,
+                    __instance.ragdollCam * StableCamera.Config.DizzyEffectStrength.Value // Changed
+                );
+            }
+
+            // Changed
+            var shakeRotation = Quaternion.Euler(GamefeelHandler.instance.GetRotation());
+            __instance.transform.Rotate(Quaternion.Slerp(Quaternion.identity, shakeRotation, StableCamera.Config.ShakeEffectStrength.Value).eulerAngles, Space.World); 
         }
 
         Vector3 cameraPos = Character.localCharacter.GetCameraPos(__instance.GetHeadOffset());
@@ -65,6 +76,28 @@ internal static class MainCameraMovementPatch
         return false;
     }
 
+    [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.GetFov))]
+    static bool GetFov_Prefix(MainCameraMovement __instance, ref float __result)
+    {
+        if (!StableCamera.Config.Enabled.Value) return true;
+        if (Character.localCharacter == null) return true;
+
+        float num = __instance.fovSetting.Value;
+        if (num < 60f)
+        {
+            num = 70f;
+        }
+        
+        __instance.currentFov = Mathf.Lerp(
+            __instance.currentFov,
+            num + (Character.localCharacter.data.isClimbing ? StableCamera.Config.ExtraClimbingFOV.Value : 0), // Changed
+            Time.deltaTime * 5f
+        );
+
+        __result = __instance.currentFov;
+        return false;
+    }
+
     [HarmonyPrefix, HarmonyPatch(typeof(Character), nameof(Character.GetCameraPos))]
     static bool GetCameraPos_Prefix(Character __instance, ref Vector3 __result, float forwardOffset)
     {
@@ -74,6 +107,8 @@ internal static class MainCameraMovementPatch
 
         return false;
     }
+
+
 
     static Vector3 GetCameraAnchor(Character character, float forwardOffset)
     {

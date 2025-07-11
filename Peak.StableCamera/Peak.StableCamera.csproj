@@ -5,7 +5,7 @@
     <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
     <Authors>linkoid</Authors>
-    <Version>1.0.0</Version>
+    <Version>1.2.0</Version>
     <AssemblyName>StableCamera</AssemblyName>
     <RootNamespace>Peak.StableCamera</RootNamespace>
   </PropertyGroup>
@@ -34,6 +34,9 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp" Private="false" Publicize="true" />
     <Reference Include="Zorro.Core.Runtime" Private="false" />
+    <Reference Include="Zorro.Settings.Runtime">
+      <HintPath>S:\SteamLibrary\steamapps\common\PEAK\PEAK_Data\Managed\Zorro.Settings.Runtime.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

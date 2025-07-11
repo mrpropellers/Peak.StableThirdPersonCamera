@@ -1,3 +1,7 @@
+* 1.2 - Added more stabilazation features
+    * Added 'Extra Climbing FOV' option and feature
+    * Added 'ShakeEffectStrength' option and feature
+    * 'ThirdPersonCamera' now disables the dizzy effect to prevent a bug when both were enabled.
 * 1.1 - Changed configuration behavior
     * 'StabilizeCamera' option renamed to 'Enabled'
     * Added StabilizeTracking option which only toggles camera behavior without disabling ThirdPersonRagdoll

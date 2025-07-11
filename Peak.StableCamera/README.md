@@ -13,7 +13,7 @@ in the BepInEx folder or in the mod manager.
 * **Toggle Key**
 	- The shortcut key which toggles the mod on or off in-game.
 	- Default: N
-* **Stabilize Tracking**      
+* **Stabilize Tracking**
 	- Reduce camera wobble using stabilized tracking. Disable this if head clipping is more annoying than wobble.
 	- Default: True
 * **Tracking Power**
@@ -22,9 +22,18 @@ in the BepInEx folder or in the mod manager.
 * **Third-Person Ragdoll**
 	- Switch to a third-person perspective whenever the character ragdolls.
 	- Default: True
+* **Extra Climbing FOV**
+	- Controls how much the camera's field of view expands while climbing.
+	- A value of 0 prevents the FOV from changing; 40 is the game's original value.
+	- Default: 0.0
 * **Dizzy Effect Strength**
-	- Option to adjust the strength factor of the dizzy camera effect.
-	- A value of 0.0 disables the dizzy camera effect, 1.0 leaves the effect unchanged.
+	- Option to adjust the strength factor of the dizzy camera effect, e.g. when recovering from passing out.
+	- A value of 0.0 disables the dizzy camera effect; 1.0 leaves the effect unchanged.
+	- The dizzy effect is always disabled if Third-Person Ragdoll is enabled.
+	- Default: 0.0
+* **Shake Effect Strength**
+	- Option to adjust the strength factor of the camera shake effect, e.g. when stamina is exhausted while climbing.
+	- A value of 0.0 disables the camera shake effect; 1.0 leaves the effect unchanged.
 	- Default: 0.0
 
 ## Bugs / Contact
