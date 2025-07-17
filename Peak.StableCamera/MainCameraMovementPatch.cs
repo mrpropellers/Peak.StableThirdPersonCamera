@@ -53,14 +53,14 @@ internal static class MainCameraMovementPatch
     [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.CharacterCam))]
     static bool CharacterCam_Prefix(MainCameraMovement __instance)
     {
+        // Call this before the early return to ensure the meshes get re-enabled if StableCamera is disabled in-game
+        ConditionallyDisableMeshRenderers(__instance);
+        
         if (!StableCamera.Config.Enabled.Value) return true;
 
         if (Character.localCharacter == null) return false;
 
         __instance.cam.cam.fieldOfView = __instance.GetFov();
-        if (Character.localCharacter == null || Character.localCharacter == null) return false;
-
-        ConditionallyDisableMeshRenderers(__instance);
         
         // Handle Rotation
         if (Character.localCharacter.data.lookDirection != Vector3.zero)
