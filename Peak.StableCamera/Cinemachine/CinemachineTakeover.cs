@@ -23,6 +23,7 @@ public static class CinemachineTakeover
         BrainCamera = cinemachineBrain.AddComponent<Camera>();
         BrainCamera.CopyFrom(mainCam.cam);
         cinemachineBrain.AddComponent<CinemachineBrain>();
+        cinemachineBrain.AddComponent<AudioListener>();
 
         var firstPersonCam = new GameObject("FirstPersonCamera").AddComponent<CinemachineCamera>();
         firstPersonCam.Priority = FirstPersonDefaultPriority;
@@ -32,6 +33,7 @@ public static class CinemachineTakeover
         firstPersonCam.gameObject.AddComponent<CinemachineHardLockToTarget>();
         firstPersonCam.gameObject.AddComponent<CinemachineRotateWithFollowTarget>();
         mainCam.cam.enabled = false;
+        mainCam.GetComponent<AudioListener>().enabled = false;
         FixCameraQuads();
     }
 
@@ -56,7 +58,7 @@ public static class CinemachineTakeover
     {
         var obstacles = CinemachineThirdPersonFollow.ObstacleSettings.Default;
         obstacles.Enabled = true;
-        obstacles.CameraRadius = 1f;
+        obstacles.CameraRadius = .5f;
         obstacles.DampingFromCollision = 0.75f;
         obstacles.DampingIntoCollision = 0.75f;
         obstacles.CollisionFilter = LayerMask.GetMask(new string[]
@@ -73,10 +75,11 @@ public static class CinemachineTakeover
         followCam.StandbyUpdate = CinemachineVirtualCameraBase.StandbyUpdateMode.RoundRobin;
         var followThirdPerson = followGameObject.AddComponent<CinemachineThirdPersonFollow>();
         followThirdPerson.Damping = new Vector3(0.75f, 0.6f, 0.75f);
-        followThirdPerson.VerticalArmLength = 2;
+        followThirdPerson.VerticalArmLength = 1f;
         followThirdPerson.CameraSide = 1;
         followThirdPerson.CameraDistance = 5f;
         followThirdPerson.AvoidObstacles = obstacles;
+        followCam.BlendHint |= CinemachineCore.BlendHints.InheritPosition;
 
         //climbCam = null;
         var climbGameObject = new GameObject("ThirdPersonClimbCamera");
@@ -84,12 +87,12 @@ public static class CinemachineTakeover
         climbCam.Follow = follow;
         climbCam.Priority = ClimbDefaultPriority;
         climbCam.StandbyUpdate = CinemachineVirtualCameraBase.StandbyUpdateMode.RoundRobin;
+        climbCam.BlendHint |= CinemachineCore.BlendHints.InheritPosition;
         var climbThirdPerson = climbGameObject.AddComponent<CinemachineThirdPersonFollow>();
         climbThirdPerson.Damping = new Vector3(0.75f, 0.6f, 0.75f);
         climbThirdPerson.ShoulderOffset = new Vector3(0f, 0f, -0.5f);
         climbThirdPerson.CameraDistance = 8f;
         climbThirdPerson.AvoidObstacles = obstacles;
-        
         followGameObject.AddComponent<MatchCameraProperties>();
         climbGameObject.AddComponent<MatchCameraProperties>();
     }
