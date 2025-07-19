@@ -58,5 +58,17 @@ namespace Linkoid.Peak.StableCamera
             //if (enabled && log.sfxJoin) log.sfxJoin.Play();
             //if (!enabled && log.sfxLeave) log.sfxLeave.Play();
         }
+
+        static PlayerConnectionLog PeakLogger;
+        
+        public static void LogToScreen(string msg)
+        {
+            Logger.LogInfo(msg);
+            if (PeakLogger == null)
+                PeakLogger = FindObjectOfType<PlayerConnectionLog>();
+            if (PeakLogger == null)
+                return;
+            PeakLogger.AddMessage(msg);
+        }
     }
 }

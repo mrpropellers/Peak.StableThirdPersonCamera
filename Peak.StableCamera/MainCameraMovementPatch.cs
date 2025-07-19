@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using Unity.Cinemachine;
 using UnityEngine;
 
 namespace Linkoid.Peak.StableCamera;
@@ -9,6 +8,8 @@ namespace Linkoid.Peak.StableCamera;
 internal static class MainCameraMovementPatch
 {
     static HideTheBody? PlayerBodyHider;
+    static CinemachineCamera FollowCamera;
+    static CinemachineCamera ClimbCamera;
 
     static void ConditionallyDisableMeshRenderers(MainCameraMovement mainCamera)
     {
@@ -32,8 +33,8 @@ internal static class MainCameraMovementPatch
             probablyInThirdPerson = probablyInRagdollCam ||
                 characterData.passedOut || characterData.fullyPassedOut || characterData.dead;
         }
-        var shouldHideMeshes = StableCamera.Config.Enabled.Value 
-            && !probablyInThirdPerson;
+        var shouldHideMeshes = //StableCamera.Config.Enabled.Value &&
+             !probablyInThirdPerson;
         
         PlayerBodyHider.headRend.enabled = !shouldHideMeshes;
         PlayerBodyHider.sash.enabled = !shouldHideMeshes;
@@ -53,13 +54,43 @@ internal static class MainCameraMovementPatch
     [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.CharacterCam))]
     static bool CharacterCam_Prefix(MainCameraMovement __instance)
     {
+        if (CinemachineTakeover.BrainCamera == null)
+        {
+            CinemachineTakeover.SetUpComponents(__instance.transform);
+            CinemachineTakeover.CreateThirdPersonCamera(__instance.transform, out FollowCamera, out ClimbCamera);
+        }
         // Call this before the early return to ensure the meshes get re-enabled if StableCamera is disabled in-game
-        ConditionallyDisableMeshRenderers(__instance);
+        //ConditionallyDisableMeshRenderers(__instance);
+
+        if (!StableCamera.Config.Enabled.Value)
+        {
+            FollowCamera.enabled = false;
+            ClimbCamera.enabled = false;
+            // FollowCamera.Priority = int.MinValue;
+            // ClimbCamera.Priority = int.MinValue;
+            ConditionallyDisableMeshRenderers(__instance);
+            return true;
+        }
         
-        if (!StableCamera.Config.Enabled.Value) return true;
+        FollowCamera.enabled = true;
+        ClimbCamera.enabled = true;
 
         if (Character.localCharacter == null) return false;
 
+        var characterState = Character.localCharacter.data;
+        var playerIsClimbing = characterState != null 
+            && (characterState.isClimbing || characterState.isRopeClimbing || characterState.isVineClimbing);
+        //     && !(characterState.isRopeClimbing || characterState.isVineClimbing);
+        if (playerIsClimbing != CinemachineTakeover.WasClimbing)
+        {
+            FollowCamera.Priority = playerIsClimbing ? CinemachineTakeover.FollowDefaultPriority : CinemachineTakeover.TopPriority;
+            ClimbCamera.Priority = playerIsClimbing ? CinemachineTakeover.TopPriority : CinemachineTakeover.FollowDefaultPriority;
+            CinemachineTakeover.WasClimbing = playerIsClimbing;
+            // TODO: I think I just need to call this one time about a second after this is originally set up
+            //      And I'm probably safe to fully disable it rather than "fix" it
+            CinemachineTakeover.FixCameraQuads();
+        }
+        
         __instance.cam.cam.fieldOfView = __instance.GetFov();
         
         // Handle Rotation
