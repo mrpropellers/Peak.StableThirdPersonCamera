@@ -1,8 +1,47 @@
 ﻿using HarmonyLib;
 using Unity.Cinemachine;
 using UnityEngine;
+using Zorro.Core;
 
 namespace Linkoid.Peak.StableCamera;
+
+[HarmonyPatch(typeof(Singleton<MainCameraMovement>))]
+static class SingletonPatch
+{
+    // [HarmonyPrefix, HarmonyPatch("Awake")]
+    // static bool Awake_Prefix(Singleton<MainCameraMovement> __instance)
+    // {
+        // if (__instance is not MainCameraMovement mainCameraMovement)
+        // {
+            // Debug.LogWarning("<><> HARMONY LOG <><> I guess this patches other classes too?");
+            // return true;
+        // }
+        // if (!StableCamera.Config.Enabled.Value || MainCameraMovement.Instance == null)
+        // {
+            // StableCamera.LogToScreen("Allowing MainCameraMovement to do it's weird singleton stuff");
+            // return true;
+        // }
+        // 
+        // StableCamera.LogToScreen("Blocking MainCameraMovement from blowing up its whole GameObject");
+        // Component.Destroy(__instance);
+        // return false;
+    // 
+    
+}
+
+// [HarmonyPatch(typeof(Billboard), nameof(Billboard.LateUpdate))]
+// static class BillboardPatch
+// {
+//     static bool Prefix(Billboard __instance)
+//     {
+//         if (!StableCamera.Enabled)
+//             return true;
+//         __instance.transform.rotation = Quaternion.LookRotation(-(CinemachineTakeover.BrainCamera.transform.position - __instance.transform.position));
+//         return false;
+//     }
+// }
+
+
 
 [HarmonyPatch(typeof(MainCameraMovement))]
 internal static class MainCameraMovementPatch
@@ -26,31 +65,30 @@ internal static class MainCameraMovementPatch
         
         // Turn body rendering off IFF we are using the stable cam AND we're not passed out (putting us in 3rd person camera)
         var characterData = Character.localCharacter?.data;
-        bool probablyInThirdPerson = false;
+        bool probablyInThirdPerson = StableCamera.Config.Enabled.Value;
         if (characterData != null)
         {
             var probablyInRagdollCam = StableCamera.Config.ThirdPersonRagdoll.Value && mainCamera.ragdollCam > ragdollCamThreshold;
-            probablyInThirdPerson = probablyInRagdollCam ||
+            probablyInThirdPerson = probablyInThirdPerson || probablyInRagdollCam ||
                 characterData.passedOut || characterData.fullyPassedOut || characterData.dead;
         }
-        var shouldHideMeshes = //StableCamera.Config.Enabled.Value &&
-             !probablyInThirdPerson;
-        
-        PlayerBodyHider.headRend.enabled = !shouldHideMeshes;
-        PlayerBodyHider.sash.enabled = !shouldHideMeshes;
+
+        var enableCams = probablyInThirdPerson || !StableCamera.Config.Enabled.Value;
+        PlayerBodyHider.headRend.enabled = enableCams;
+        PlayerBodyHider.sash.enabled = enableCams;
         foreach (var hatRenderer in PlayerBodyHider.refs.playerHats)
         {
-            hatRenderer.enabled = !shouldHideMeshes;
+            hatRenderer.enabled = enableCams;
         }
 
-        var shouldHideBody = shouldHideMeshes && StableCamera.Config.HidePlayerMesh.Value;
+        var shouldHideBody = StableCamera.Config.HidePlayerMesh.Value && !enableCams;
         PlayerBodyHider.body.enabled = !shouldHideBody;
         foreach (var meshRenderer in PlayerBodyHider.costumes)
         {
             meshRenderer.enabled = !shouldHideBody;
         }
     }
-    
+
     [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.CharacterCam))]
     static bool CharacterCam_Prefix(MainCameraMovement __instance)
     {
@@ -62,18 +100,20 @@ internal static class MainCameraMovementPatch
         // Call this before the early return to ensure the meshes get re-enabled if StableCamera is disabled in-game
         //ConditionallyDisableMeshRenderers(__instance);
 
+        ConditionallyDisableMeshRenderers(__instance);
+        var camsEnabled = StableCamera.Config.Enabled.Value;
+        FollowCamera.enabled = camsEnabled;
+        ClimbCamera.enabled = camsEnabled;
+        CinemachineTakeover.FirstPersonCamera.enabled = camsEnabled;
+        CinemachineTakeover.BrainCamera.gameObject.SetActive(camsEnabled);
+        MainCamera.instance.cam.enabled = !camsEnabled;
         if (!StableCamera.Config.Enabled.Value)
         {
-            FollowCamera.enabled = false;
-            ClimbCamera.enabled = false;
+            
             // FollowCamera.Priority = int.MinValue;
             // ClimbCamera.Priority = int.MinValue;
-            ConditionallyDisableMeshRenderers(__instance);
             return true;
         }
-        
-        FollowCamera.enabled = true;
-        ClimbCamera.enabled = true;
 
         if (Character.localCharacter == null) return false;
 
@@ -176,7 +216,7 @@ internal static class MainCameraMovementPatch
     [HarmonyPrefix, HarmonyPatch(typeof(Character), nameof(Character.GetCameraPos))]
     static bool GetCameraPos_Prefix(Character __instance, ref Vector3 __result, float forwardOffset)
     {
-        if (!StableCamera.Config.StabilizeTracking.Value) return true;
+        if (!StableCamera.Config.Enabled.Value || !StableCamera.Config.StabilizeTracking.Value) return true;
 
         __result = GetCameraAnchor(__instance, forwardOffset);
 

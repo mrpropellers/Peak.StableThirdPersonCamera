@@ -1,15 +1,52 @@
+using HarmonyLib;
 using Linkoid.Peak.StableCamera;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
+
+[HarmonyPatch(typeof(Camera))]
+public static class OverrideCameraMain
+{
+    [HarmonyPatch("main"), HarmonyPatch(MethodType.Getter), HarmonyPrefix]
+    public static bool GetMain_Prefix(ref Camera __result)
+    {
+        if (StableCamera.Config.Enabled.Value && CinemachineTakeover.BrainCamera != null)
+        {
+            __result = CinemachineTakeover.BrainCamera;
+            return false;
+        }
+        
+        return true;
+    }
+}
+// 
+// [HarmonyPatch(typeof(MainCamera))]
+// public static class OverrideMainCamera
+// {
+//     [HarmonyPatch("transform"), HarmonyPatch(MethodType.Getter), HarmonyPrefix]
+//     public static bool GetTransform_Prefix(ref Transform __result)
+//     {
+//         if (StableCamera.Enabled && CinemachineTakeover.BrainCamera != null)
+//         {
+//             __result = CinemachineTakeover.BrainCamera.transform;
+//             return false;
+//         }
+// 
+//         return true;
+//     }
+// }
+
 
 public static class CinemachineTakeover
 {
+    
     public static int TopPriority = 9999;
     public static int FirstPersonDefaultPriority = 1;
     public static int ClimbDefaultPriority = 2;
     public static int FollowDefaultPriority = 3;
     public static bool WasClimbing = false;
     public static Camera BrainCamera;
+    public static CinemachineCamera FirstPersonCamera;
     
     public static void SetUpComponents(Transform mainCameraTf)
     {
@@ -19,12 +56,40 @@ public static class CinemachineTakeover
         {
             StableCamera.LogToScreen("Uh oh. I thought these were the same!");
         }
+
+        // if (mainCam.TryGetComponent<UniversalAdditionalCameraData>(out var _))
+        // {
+        //     StableCamera.LogToScreen("Found Universal Camera data!");
+        // }
+
+        // >>> BAD BROKEN WAY I CAN'T FIGURE OUT BECAUSE MainCameraMovement self-destructs on Awake <<<
+        // var cinemachineBrain = GameObject.Instantiate(mainCam).gameObject;
+        // cinemachineBrain.name = "Cinemachine Brain Camera";
+        // // Clear out the objects we don't actually want
+        // Component.Destroy(cinemachineBrain.GetComponent<AudioListener>());
+        // Component.Destroy(cinemachineBrain.GetComponent<MainCameraMovement>());
+        // Component.Destroy(cinemachineBrain.GetComponent<MainCamera>());
+        // cinemachineBrain.GetComponent<AudioListener>().enabled = false;
+        // cinemachineBrain.GetComponent<MainCameraMovement>().enabled = false;
+        // cinemachineBrain.GetComponent<MainCamera>().enabled = false;
+        // Ensure the newly instantiated "singleton" doesn't hijack this reference
+        //MainCamera.instance = mainCam;
+        
+        // >>> Less good way because we're not getting ALL The camera data for some reason
+        // (and color grading isn't working)
         var cinemachineBrain = new GameObject("CinemachineBrain Camera");
         BrainCamera = cinemachineBrain.AddComponent<Camera>();
+        var cameraData = cinemachineBrain.AddComponent<UniversalAdditionalCameraData>();
         BrainCamera.CopyFrom(mainCam.cam);
+        var mainCamData = mainCam.cam.GetUniversalAdditionalCameraData();
+        cameraData.renderPostProcessing = mainCamData.renderPostProcessing;
+        cameraData.antialiasing = mainCamData.antialiasing;
+        cameraData.antialiasingQuality = mainCamData.antialiasingQuality;
+        cameraData.dithering = mainCamData.dithering;
+        
+        //mainCam.cam.GetUniversalAdditionalCameraData();
         cinemachineBrain.AddComponent<CinemachineBrain>();
-        cinemachineBrain.AddComponent<AudioListener>();
-
+        
         var firstPersonCam = new GameObject("FirstPersonCamera").AddComponent<CinemachineCamera>();
         firstPersonCam.Priority = FirstPersonDefaultPriority;
         firstPersonCam.StandbyUpdate = CinemachineVirtualCameraBase.StandbyUpdateMode.RoundRobin;
@@ -32,9 +97,12 @@ public static class CinemachineTakeover
         firstPersonCam.LookAt = mainCam.transform;
         firstPersonCam.gameObject.AddComponent<CinemachineHardLockToTarget>();
         firstPersonCam.gameObject.AddComponent<CinemachineRotateWithFollowTarget>();
+        FirstPersonCamera = firstPersonCam;
+        var matchCamera = firstPersonCam.gameObject.AddComponent<MatchCameraProperties>();
+        matchCamera.CameraToMatch = mainCam.cam;
         mainCam.cam.enabled = false;
-        mainCam.GetComponent<AudioListener>().enabled = false;
-        FixCameraQuads();
+        //mainCam.GetComponent<AudioListener>().enabled = false;
+        //FixCameraQuads();
     }
 
     public static void FixCameraQuads()

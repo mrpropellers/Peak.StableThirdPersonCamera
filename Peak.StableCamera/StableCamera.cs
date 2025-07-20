@@ -14,6 +14,7 @@ namespace Linkoid.Peak.StableCamera
         internal Harmony? Harmony { get; set; }
 
         internal static new ConfigModel Config { get; private set; }
+        public static bool Enabled => Config.Enabled.Value;
 
         private void Awake()
         {
