@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Linkoid.Peak.StableCamera
 {
-    [BepInPlugin("Linkoid.Peak.StableCamera", "StableCamera", "1.2")]
+    [BepInPlugin("LeftOut.Peak.StableThirdPersonCamera", "StableThirdPersonCamera", "1.0.0")]
     public class StableCamera : BaseUnityPlugin
     {
         internal static StableCamera Instance { get; private set; } = null!;

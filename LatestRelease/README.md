@@ -9,7 +9,6 @@ Coming soon, maybe.. just trying to get it to work right now.
 * No handling for readable objects that require the player to be in first-person to read them (like the scout guide book)
 * Camera seems to be casting a weird little circular shadow
 * Player's own backpack doesn't render when wearing on back
-* Binoculars probably don't work (haven't seen em yet)
 
 ## Bugs / Contact
 Report bugs and feature requests on the repository page here: https://github.com/mrpropellers/Peak.StableThirdPersonCamera/issues

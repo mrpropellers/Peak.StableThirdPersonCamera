@@ -4,9 +4,9 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
-    <Authors>linkoid</Authors>
-    <Version>1.2.0</Version>
-    <AssemblyName>StableCamera</AssemblyName>
+    <Authors>linkoid,LeftOut</Authors>
+    <Version>0.0.2</Version>
+    <AssemblyName>StableThirdPersonCamera</AssemblyName>
     <RootNamespace>Peak.StableCamera</RootNamespace>
   </PropertyGroup>
 
