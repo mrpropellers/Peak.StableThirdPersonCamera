@@ -16,7 +16,8 @@ jobs:
         with:
           namespace: LeftOut # the thunderstore 'team' to publish under
           description: Adds a stabilized third-person camera based off the Another Crab's Treasure camera settings to hopefully prevent motion sickness.
-          token: ${{ secrets.THUNDERSTORE_KEY }}
+          # token: ${{ secrets.THUNDERSTORE_KEY }}
+          token: ${{ secrets.THUNDERSTORE_DEV }}
           name: StableThirdPersonCamera # the name of the package
           version: ${{ github.ref_name }} # Use the tag as the package version
           community: peak 
