@@ -17,10 +17,9 @@ jobs:
           namespace: LeftOut # the thunderstore 'team' to publish under
           description: Peak Stable Third Person Camera 
           token: ${{ secrets.THUNDERSTORE_KEY }}
-          name: Peak.StableThirdPersonCamera # the name of the package
+          name: StableThirdPersonCamera # the name of the package
           version: ${{ github.ref_name }} # Use the tag as the package version
-          community: Peak
-          file: LatestRelease.zip
+          community: PEAK
           repo: northstar.thunderstore.io
           categories: |
             client
