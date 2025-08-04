@@ -14,6 +14,7 @@ namespace Linkoid.Peak.StableCamera
         internal Harmony? Harmony { get; set; }
 
         internal static new ConfigModel Config { get; private set; }
+        public static bool Enabled => Config.Enabled.Value;
 
         private void Awake()
         {
@@ -57,6 +58,18 @@ namespace Linkoid.Peak.StableCamera
             log.AddMessage($"{log.GetColorTag(log.userColor)}Stable Camera</color> has been {log.GetColorTag(enabled ? log.joinedColor : log.leftColor)}{(enabled ? "enabled" : "disabled")}</color>");
             //if (enabled && log.sfxJoin) log.sfxJoin.Play();
             //if (!enabled && log.sfxLeave) log.sfxLeave.Play();
+        }
+
+        static PlayerConnectionLog PeakLogger;
+        
+        public static void LogToScreen(string msg)
+        {
+            Logger.LogInfo(msg);
+            if (PeakLogger == null)
+                PeakLogger = FindObjectOfType<PlayerConnectionLog>();
+            if (PeakLogger == null)
+                return;
+            PeakLogger.AddMessage(msg);
         }
     }
 }
