@@ -46,20 +46,18 @@ static class SingletonPatch
 [HarmonyPatch(typeof(MainCameraMovement))]
 internal static class MainCameraMovementPatch
 {
-    static HideTheBody? PlayerBodyHider;
-    static CinemachineCamera FollowCamera;
-    static CinemachineCamera ClimbCamera;
-
+    public static Transform SubstituteTransform;
+    
     static void ConditionallyDisableMeshRenderers(MainCameraMovement mainCamera)
     {
         // Roughly estimated value for when we're far enough into the ragdoll cam that we should start seeing the player body
         const float ragdollCamThreshold = 0.35f;
         
-        if (PlayerBodyHider == null)
+        if (Cinemachine.PlayerBodyHider == null)
         {
             // Fetch this component because it has direct references to all the renderers we care about
-            PlayerBodyHider = Character.localCharacter.GetComponentInChildren<HideTheBody>();
-            if (PlayerBodyHider == null)
+            Cinemachine.PlayerBodyHider = Character.localCharacter.GetComponentInChildren<HideTheBody>();
+            if (Cinemachine.PlayerBodyHider == null)
                 return;
         }
         
@@ -74,16 +72,16 @@ internal static class MainCameraMovementPatch
         }
 
         var enableCams = probablyInThirdPerson || !StableCamera.Config.Enabled.Value;
-        PlayerBodyHider.headRend.enabled = enableCams;
-        PlayerBodyHider.sash.enabled = enableCams;
-        foreach (var hatRenderer in PlayerBodyHider.refs.playerHats)
+        Cinemachine.PlayerBodyHider.headRend.enabled = enableCams;
+        Cinemachine.PlayerBodyHider.sash.enabled = enableCams;
+        foreach (var hatRenderer in Cinemachine.PlayerBodyHider.refs.playerHats)
         {
             hatRenderer.enabled = enableCams;
         }
 
         var shouldHideBody = StableCamera.Config.HidePlayerMesh.Value && !enableCams;
-        PlayerBodyHider.body.enabled = !shouldHideBody;
-        foreach (var meshRenderer in PlayerBodyHider.costumes)
+        Cinemachine.PlayerBodyHider.body.enabled = !shouldHideBody;
+        foreach (var meshRenderer in Cinemachine.PlayerBodyHider.costumes)
         {
             meshRenderer.enabled = !shouldHideBody;
         }
@@ -92,21 +90,21 @@ internal static class MainCameraMovementPatch
     [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.CharacterCam))]
     static bool CharacterCam_Prefix(MainCameraMovement __instance)
     {
-        if (CinemachineTakeover.BrainCamera == null)
+        if (Cinemachine.BrainCamera == null)
         {
-            CinemachineTakeover.SetUpComponents(__instance.transform);
-            CinemachineTakeover.CreateThirdPersonCamera(__instance.transform, out FollowCamera, out ClimbCamera);
+            Cinemachine.SetUpComponents(__instance.gameObject);
+            __instance.cam.cam = Cinemachine.DummyCamera;
         }
         // Call this before the early return to ensure the meshes get re-enabled if StableCamera is disabled in-game
         //ConditionallyDisableMeshRenderers(__instance);
 
         ConditionallyDisableMeshRenderers(__instance);
         var camsEnabled = StableCamera.Config.Enabled.Value;
-        FollowCamera.enabled = camsEnabled;
-        ClimbCamera.enabled = camsEnabled;
-        CinemachineTakeover.FirstPersonCamera.enabled = camsEnabled;
-        CinemachineTakeover.BrainCamera.gameObject.SetActive(camsEnabled);
-        MainCamera.instance.cam.enabled = !camsEnabled;
+        Cinemachine.FollowCamera.enabled = camsEnabled;
+        Cinemachine.ClimbCamera.enabled = camsEnabled;
+        Cinemachine.FirstPersonCamera.enabled = !camsEnabled;
+        //Cinemachine.BrainCamera.gameObject.SetActive(camsEnabled);
+        //MainCamera.instance.cam.enabled = !camsEnabled;
         if (!StableCamera.Config.Enabled.Value)
         {
             
@@ -120,23 +118,14 @@ internal static class MainCameraMovementPatch
         var characterState = Character.localCharacter.data;
         var playerIsClimbing = characterState != null 
             && (characterState.isClimbing || characterState.isRopeClimbing || characterState.isVineClimbing);
+        Cinemachine.UpdateVCamPriorities(playerIsClimbing);
         //     && !(characterState.isRopeClimbing || characterState.isVineClimbing);
-        if (playerIsClimbing != CinemachineTakeover.WasClimbing)
-        {
-            FollowCamera.Priority = playerIsClimbing ? CinemachineTakeover.FollowDefaultPriority : CinemachineTakeover.TopPriority;
-            ClimbCamera.Priority = playerIsClimbing ? CinemachineTakeover.TopPriority : CinemachineTakeover.FollowDefaultPriority;
-            CinemachineTakeover.WasClimbing = playerIsClimbing;
-            // TODO: I think I just need to call this one time about a second after this is originally set up
-            //      And I'm probably safe to fully disable it rather than "fix" it
-            CinemachineTakeover.FixCameraQuads();
-        }
-        
         __instance.cam.cam.fieldOfView = __instance.GetFov();
         
         // Handle Rotation
         if (Character.localCharacter.data.lookDirection != Vector3.zero)
         {
-            __instance.transform.rotation = Quaternion.LookRotation(Character.localCharacter.data.lookDirection);
+            SubstituteTransform.rotation = Quaternion.LookRotation(Character.localCharacter.data.lookDirection);
             float ragdollCamControl = 1f - Character.localCharacter.data.currentRagdollControll;
 
             // Update ragdollCam value
@@ -154,8 +143,8 @@ internal static class MainCameraMovementPatch
             // Changed
             if (!StableCamera.Config.ThirdPersonRagdoll.Value)
             {
-                __instance.transform.rotation = Quaternion.Lerp(
-                    __instance.transform.rotation,
+                SubstituteTransform.rotation = Quaternion.Lerp(
+                    SubstituteTransform.rotation,
                     __instance.physicsRot,
                     __instance.ragdollCam * StableCamera.Config.DizzyEffectStrength.Value // Changed
                 );
@@ -163,30 +152,30 @@ internal static class MainCameraMovementPatch
 
             // Changed
             var shakeRotation = Quaternion.Euler(GamefeelHandler.instance.GetRotation());
-            __instance.transform.Rotate(Quaternion.Slerp(Quaternion.identity, shakeRotation, StableCamera.Config.ShakeEffectStrength.Value).eulerAngles, Space.World); 
+            SubstituteTransform.Rotate(Quaternion.Slerp(Quaternion.identity, shakeRotation, StableCamera.Config.ShakeEffectStrength.Value).eulerAngles, Space.World); 
         }
 
         Vector3 cameraPos = Character.localCharacter.GetCameraPos(__instance.GetHeadOffset());
         Vector3 torsoPos = GetRagdollCameraPosition(__instance); // Changed
 
         __instance.targetPlayerPovPosition = Vector3.Lerp(cameraPos, torsoPos, __instance.ragdollCam);
-        var distance = Vector3.Distance(__instance.transform.position, __instance.targetPlayerPovPosition);
+        var distance = Vector3.Distance(SubstituteTransform.position, __instance.targetPlayerPovPosition);
         if (distance > __instance.characterPovMaxDistance)
         {
             // Changed
-            var clampedTargetPlayerPovPosition = __instance.targetPlayerPovPosition + (__instance.transform.position - __instance.targetPlayerPovPosition).normalized * __instance.characterPovMaxDistance;
+            var clampedTargetPlayerPovPosition = __instance.targetPlayerPovPosition + (SubstituteTransform.position - __instance.targetPlayerPovPosition).normalized * __instance.characterPovMaxDistance;
             if (StableCamera.Config.StabilizeTracking.Value)
             {
-                __instance.transform.position = Vector3.Lerp(__instance.transform.position, clampedTargetPlayerPovPosition, Time.deltaTime * (__instance.characterPovLerpRate + distance / __instance.characterPovMaxDistance * StableCamera.Config.TrackingPower.Value));
+                SubstituteTransform.position = Vector3.Lerp(SubstituteTransform.position, clampedTargetPlayerPovPosition, Time.deltaTime * (__instance.characterPovLerpRate + distance / __instance.characterPovMaxDistance * StableCamera.Config.TrackingPower.Value));
             }
             else
             {
-                __instance.transform.position = clampedTargetPlayerPovPosition;
+                SubstituteTransform.position = clampedTargetPlayerPovPosition;
             }
             
         }
 
-        __instance.transform.position = Vector3.Lerp(__instance.transform.position, __instance.targetPlayerPovPosition, Time.deltaTime * __instance.characterPovLerpRate);
+        SubstituteTransform.position = Vector3.Lerp(SubstituteTransform.position, __instance.targetPlayerPovPosition, Time.deltaTime * __instance.characterPovLerpRate);
 
         return false;
     }
@@ -253,7 +242,7 @@ internal static class MainCameraMovementPatch
 
         Vector3 lookDirection = Character.localCharacter.data.lookDirection;
         if (lookDirection == Vector3.zero)
-            lookDirection = __instance.transform.forward;
+            lookDirection = SubstituteTransform.forward;
 
         lookDirection = lookDirection.normalized;
 
@@ -266,4 +255,5 @@ internal static class MainCameraMovementPatch
 
         return desiredPos;
     }
+
 }

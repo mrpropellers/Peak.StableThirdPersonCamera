@@ -1,0 +1,9 @@
+{
+ "name": "Stable Third Person Camera",
+ "version_number": "0.0.1",
+ "website_url": "https://github.com/linkoid/Peak.StableCamera",
+ "description": "Adds a stabilized third-person camera based off the Another Crab's Treasure camera settings to help prevent motion sickness when playing Peak.",
+ "dependencies": [
+  "BepInEx-BepInExPack_PEAK-5.4.2403"
+ ]
+}
