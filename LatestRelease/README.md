@@ -1,14 +1,18 @@
 # Stable Third Person Camera
-Adds smoothed out third-person tracking to the player.
-Press *N* (configurable) to toggle the camera on/off in-game. Note that this toggle may be unstable and you might need to restart Peak to get it working right.
+From some guy who worked at Aggro Crab for like 3 months to make Another Crab's Treasure's very cool and normal camera that never does anything weird: 
+it's a stabilized third-person camera for PEAK!! Based on linkoid's stabilization code,
+extended to keep the camera in third person all the time.
 
-# Features and Configuration
-Coming soon, maybe.. just trying to get it to work right now.
+Press *N* (configurable) to toggle the camera on/off in-game.
 
-# Known Issues
-* No handling for readable objects that require the player to be in first-person to read them (like the scout guide book)
+## Configuration
+C O M I N G  S O O N
+
+## Known Issues
+* No handling for text-having objects that require the player to be in first-person to read them (like the scout guide book)
 * Camera seems to be casting a weird little circular shadow
 * Player's own backpack doesn't render when wearing on back
+* Binoculars probably don't work (haven't seen em yet)
 
 ## Bugs / Contact
 Report bugs and feature requests on the repository page here: https://github.com/mrpropellers/Peak.StableThirdPersonCamera/issues
