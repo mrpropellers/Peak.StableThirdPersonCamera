@@ -15,16 +15,16 @@ containsNsfwContent = false
 BepInEx-BepInExPack_PEAK = "5.4.2403"
 
 [build]
-icon = "./icon.png"
-readme = "../README.md"
-outdir = "./artifacts/thunderstore/"
+icon = "./Peak.StableThirdPersonCamera/icon.png"
+readme = "./README.md"
+outdir = "./build"
 
 [[build.copy]]
-source = "./Assemblies/Unity.Cinemachine.dll"
+source = "./Peak.StableThirdPersonCamera/Assemblies/Unity.Cinemachine.dll"
 target = "plugins/"
 
 [[build.copy]]
-source = "../CHANGELOG.md"
+source = "./CHANGELOG.md"
 target = "/"
 
 # [[build.copy]]
