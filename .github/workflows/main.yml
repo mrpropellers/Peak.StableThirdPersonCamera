@@ -15,12 +15,12 @@ jobs:
       - uses: GreenTF/upload-thunderstore-package@v4.3
         with:
           namespace: LeftOut # the thunderstore 'team' to publish under
-          description: Adds a stabilized third-person camera based off the Another Crab's Treasure camera settings to help prevent motion sickness when playing Peak.
+          description: Adds a stabilized third-person camera based off the Another Crab's Treasure camera settings to hopefully prevent motion sickness.
           token: ${{ secrets.THUNDERSTORE_KEY }}
           name: StableThirdPersonCamera # the name of the package
           version: ${{ github.ref_name }} # Use the tag as the package version
           community: peak 
-          repo: northstar.thunderstore.io
+          repo: thunderstore.io
           categories: |
             client
             qol
