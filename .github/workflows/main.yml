@@ -21,9 +21,9 @@ jobs:
           version: ${{ github.ref_name }} # Use the tag as the package version
           community: peak 
           repo: thunderstore.io
-          #dev: true
-          #path: ./Peak.StableThirdPersonCamera
-          file: ./LatestRelease.zip
+          dev: true
+          path: ./Peak.StableThirdPersonCamera
+          #file: ./LatestRelease.zip
           categories: |
             mods
             client
