@@ -1,8 +1,12 @@
-# <<< CURRENTLY BROKEN >>> 
-### Hi folks. This plug-in isn't working right now. As soon as I figure out why I'll push an update up.
+## <== PARTIALLY BROKEN ==>
+Hi folks. This mod isn't working right now when installed with Mod Manager. Until I figure out how to fix that,
+ the only way to use this mod is to install it manually alongside BepinEx. Instructions for installing BepinEx can be found
+here: https://docs.bepinex.dev/articles/user_guide/installation/index.html
+
+Once BepinEx is installed, you should be able to unzip this mod into the plug-ins  folder and it will work fine.
 
 # Stable Third Person Camera
-From the guy who worked at Aggro Crab for like 3 months to make Another Crab's Treasure's very cool and normal camera that never does anything weird: 
+From some guy who worked at Aggro Crab for like 3 months and made a very cool and normal camera that never does anything weird: 
 it's a stabilized third-person camera for PEAK!! Based on linkoid's stabilization code,
 extended to keep the camera in third person all the time.
 
@@ -12,6 +16,7 @@ Press *N* (configurable) to toggle the camera on/off in-game.
 C O M I N G  S O O N
 
 ## Known Issues
+* Camera gets jumpy around pointy rocks
 * No handling for text-having objects that require the player to be in first-person to read them (like the scout guide book)
 * Camera seems to be casting a weird little circular shadow
 * Player's own backpack doesn't render when wearing on back

@@ -7,7 +7,7 @@ repository = "https://thunderstore.io"
 [package]
 namespace = "LeftOut"
 name = "StableThirdPersonCamera"
-description = "<<<Currently Broken>>> -- After I fix this mod, it will add a stabilized third person camera to Peak. Stay tuned."
+description = "(Partially broken -> see readme). Adds a stabilized third person camera to Peak to make the game playable for folks with sensitive tum tums."
 #"Adds a stabilized third-person camera based off the Another Crab's Treasure camera settings to hopefully prevent motion sickness."
 websiteUrl = "https://github.com/mrpropellers/Peak.StableThirdPersonCamera"
 containsNsfwContent = false

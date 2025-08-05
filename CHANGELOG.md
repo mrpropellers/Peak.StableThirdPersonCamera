@@ -1,3 +1,6 @@
+0.1.3
+* Updating instructions to point at manual BepinEx install.
+
 0.1.1
 * Plugin kind of works, but might require you to source your own Unity.Cinemachine.dll
 
