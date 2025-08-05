@@ -6,9 +6,9 @@ using UnityEngine;
 namespace StableThirdPersonCamera;
 
 [BepInPlugin("LeftOut.Peak.StableThirdPersonCamera", "StableThirdPersonCamera", "1.0.0")]
-public class StableCamera : BaseUnityPlugin
+public class StableThirdPersonCamera : BaseUnityPlugin
 {
-    internal static StableCamera Instance { get; private set; } = null!;
+    internal static StableThirdPersonCamera Instance { get; private set; } = null!;
     internal new static ManualLogSource Logger => Instance._logger;
     private ManualLogSource _logger => base.Logger;
     internal Harmony? Harmony { get; set; }

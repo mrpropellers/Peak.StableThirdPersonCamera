@@ -2,9 +2,15 @@ using Unity.Cinemachine;
 using UnityEngine;
 
 namespace StableThirdPersonCamera;
-public static class Cinemachine
+public static class CameraHelpers
 {
     public static Camera BrainCamera;
+
+    public static bool ShouldSetUpCameras => StableThirdPersonCamera.Enabled && BrainCamera == null;
+
+    // TODO: Rather than null-checking over and over again we could hook into SceneManager callbacks and reset
+    //      this value whenever the Scene changes
+    public static bool HasSetUpCameras => BrainCamera != null;
     // This will attach itself to the BrainCamera and follow it in lockstep, giving stuff that wants to change properties
     // that Cinemachine locks to its VCams a target. Then we'll copy them to our cameras
     public static Camera DummyCamera;
@@ -33,11 +39,11 @@ public static class Cinemachine
     
     public static void SetUpComponents(GameObject mainCamera)
     {
-        StableCamera.LogToScreen("Setting up third person cameras...");
+        StableThirdPersonCamera.LogToScreen("Setting up third person cameras...");
         var mainCam = MainCamera.instance;
         if (mainCam.transform != mainCamera.transform)
         {
-            StableCamera.LogToScreen("Uh oh. I thought these were the same!");
+            StableThirdPersonCamera.LogToScreen("Uh oh. I thought these were the same!");
         }
 
         MainCameraMovementPatch.SubstituteTransform = new GameObject("New Camera Target").transform;
@@ -58,6 +64,7 @@ public static class Cinemachine
         firstPersonCam.LookAt = MainCameraMovementPatch.SubstituteTransform;
         firstPersonCam.gameObject.AddComponent<CinemachineHardLockToTarget>();
         firstPersonCam.gameObject.AddComponent<CinemachineRotateWithFollowTarget>();
+        firstPersonCam.BlendHint = CinemachineCore.BlendHints.InheritPosition;
         FirstPersonCamera = firstPersonCam;
         var matchCamera = firstPersonCam.gameObject.AddComponent<MatchCameraProperties>();
         matchCamera.CameraToMatch = DummyCamera;
@@ -88,7 +95,7 @@ public static class Cinemachine
         followThirdPerson.CameraSide = 1;
         followThirdPerson.CameraDistance = 5f;
         followThirdPerson.AvoidObstacles = obstacles;
-        followCam.BlendHint |= CinemachineCore.BlendHints.InheritPosition;
+        followCam.BlendHint = CinemachineCore.BlendHints.InheritPosition;
         followGameObject.AddComponent<MatchCameraProperties>().CameraToMatch = DummyCamera;
         FollowCamera = followCam;
 
@@ -98,7 +105,7 @@ public static class Cinemachine
         climbCam.Follow = MainCameraMovementPatch.SubstituteTransform;
         climbCam.Priority = ClimbDefaultPriority;
         climbCam.StandbyUpdate = CinemachineVirtualCameraBase.StandbyUpdateMode.RoundRobin;
-        climbCam.BlendHint |= CinemachineCore.BlendHints.InheritPosition;
+        climbCam.BlendHint = CinemachineCore.BlendHints.InheritPosition;
         var climbThirdPerson = climbGameObject.AddComponent<CinemachineThirdPersonFollow>();
         climbThirdPerson.Damping = new Vector3(0.75f, 0.6f, 0.75f);
         climbThirdPerson.ShoulderOffset = new Vector3(0f, 0f, -0.5f);
@@ -110,36 +117,39 @@ public static class Cinemachine
         var dummyMain = MainCameraMovementPatch.SubstituteTransform.gameObject.AddComponent<MainCamera>();
         dummyMain.cam = DummyCamera;
         BrainCamera.GetComponent<MainCamera>().enabled = false;
-        StableCamera.LogSetupSuccess();
+        StableThirdPersonCamera.LogSetupSuccess();
     }
 
     public static void UpdateVCamPriorities(bool playerIsClimbing)
     {
+        FirstPersonCamera.Priority = StableThirdPersonCamera.Enabled 
+            ? FirstPersonDefaultPriority 
+            : TopPriority + 1;
         if (playerIsClimbing != WasClimbing)
         {
             FollowCamera.Priority = playerIsClimbing ? FollowDefaultPriority : TopPriority;
             ClimbCamera.Priority = playerIsClimbing ? TopPriority : FollowDefaultPriority;
-            Cinemachine.WasClimbing = playerIsClimbing;
+            CameraHelpers.WasClimbing = playerIsClimbing;
             // TODO: I think I just need to call this one time about a second after this is originally set up
             //      And I'm probably safe to fully disable it rather than "fix" it
-            Cinemachine.FixCameraQuads();
+            //CameraHelpers.FixCameraQuads();
         }
         
     }
 
-    public static void FixCameraQuads()
-    {
-        // idk what this does but there sure are a lot of nullrefs if we don't do this
-        var cameraQuads = Object.FindObjectsOfType<CameraQuad>();
-        bool quadsWereBroke = false;
-        foreach (var quad in cameraQuads)
-        {
-            if (quad.cam != null)
-                continue;
-            quadsWereBroke = true;
-            quad.cam = Cinemachine.BrainCamera;
-        }
-        if (quadsWereBroke)
-            StableCamera.LogToScreen("Quads were broke again");
-    }
+    //public static void FixCameraQuads()
+    //{
+    //    // idk what this does but there sure are a lot of nullrefs if we don't do this
+    //    var cameraQuads = Object.FindObjectsOfType<CameraQuad>();
+    //    bool quadsWereBroke = false;
+    //    foreach (var quad in cameraQuads)
+    //    {
+    //        if (quad.cam != null)
+    //            continue;
+    //        quadsWereBroke = true;
+    //        quad.cam = CameraHelpers.BrainCamera;
+    //    }
+    //    if (quadsWereBroke)
+    //        StableThirdPersonCamera.LogToScreen("Quads were broke again");
+    //}
 }

@@ -6,15 +6,16 @@ extended to keep the camera in third person all the time.
 Press *N* (configurable) to toggle the camera on/off in-game.
 
 ## Configuration
-TODO: Right now, most of the config values are inherited from linkoid's StableCamera mod and don't really do anything. 
-I'll fix that eventually. 
+* Mostly you can just turn it on and off. Note that once you turn it ON, the first-person camera will be in a partially
+ broken state even if you turn it off again. You'll need to start a new run with it OFF to restore the original camera
 
 ## Known Issues
 * Binoculars don't work right
 * Camera gets jumpy around pointy rocks
-* No handling for text-having objects that require the player to be in first-person to read them
+* Text-having objects fly off into infinity when player attempts to read them (they will be broken even if 3rd-person is disabled mid-game)
 * Camera seems to be casting a weird little circular shadow
 * Player's own backpack doesn't render when wearing on back
+* End-game sequence probably looks weird (I haven't beat the game with the mod enabled lol)
 
 ## Bugs / Contact
 Report bugs and feature requests on the repository page here: https://github.com/mrpropellers/Peak.StableThirdPersonCamera/issues or

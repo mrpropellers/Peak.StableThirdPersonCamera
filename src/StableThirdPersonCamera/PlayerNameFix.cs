@@ -9,7 +9,7 @@ public class PlayerNameFix
 {
     public static bool Prefix(ref UIPlayerNames __instance, int index, Vector3 position, bool visible, int speakingAmplitude)
     {
-        if (!StableCamera.Enabled)
+        if (!StableThirdPersonCamera.Enabled)
             return true;
         
         if (index >= __instance.playerNameText.Length)

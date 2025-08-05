@@ -1,3 +1,7 @@
+0.1.5
+* Cleared out some crufty config variables
+* Disabling the mod mid-game should be less glitchy (you still need to start a new game to fully turn it off)
+
 0.1.4
 * Updated instructions again because it's working now??
 
