@@ -1,9 +1,0 @@
-{
- "name": "StableThirdPersonCamera",
- "version_number": "0.0.8",
- "website_url": "https://github.com/mrpropellers/Peak.StableThirdPersonCamera",
- "description": "Adds a stabilized third-person camera based off the Another Crab's Treasure camera settings to help prevent motion sickness when playing Peak.",
- "dependencies": [
-  "BepInEx-BepInExPack_PEAK-5.4.2403"
- ]
-}

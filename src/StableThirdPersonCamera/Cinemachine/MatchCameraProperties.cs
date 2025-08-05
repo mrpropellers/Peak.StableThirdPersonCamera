@@ -2,13 +2,13 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Linkoid.Peak.StableCamera;
+namespace StableThirdPersonCamera;
 
 public class MatchCameraProperties : CinemachineExtension
 {
     public Camera CameraToMatch;
-    
-    public override void PostPipelineStageCallback(CinemachineVirtualCameraBase vcam, CinemachineCore.Stage stage, ref CameraState state, float deltaTime)
+
+    protected override void PostPipelineStageCallback(CinemachineVirtualCameraBase vcam, CinemachineCore.Stage stage, ref CameraState state, float deltaTime)
     {
         if (stage != CinemachineCore.Stage.Aim)
             return;

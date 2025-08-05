@@ -1,3 +1,9 @@
+0.1.1
+* Plugin kind of works, but might require you to source your own Unity.Cinemachine.dll
+
+0.1.0
+* Plugin disabled while I figure out why it's broken
+
 0.0.2
 * Documentation updated (sort of)
 

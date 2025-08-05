@@ -3,7 +3,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using Zorro.Core;
 
-namespace Linkoid.Peak.StableCamera;
+namespace StableThirdPersonCamera;
 
 [HarmonyPatch(typeof(Singleton<MainCameraMovement>))]
 static class SingletonPatch
@@ -231,6 +231,20 @@ internal static class MainCameraMovementPatch
         //return head.WorldTargetPos() + transformedOffset;
 
         return character.refs.ragdoll.CenterOfMass() + transformedOffset + head.targetOffsetRelativeToHip * 0.75f;
+    }
+    
+    static Vector3 CenterOfMass(this CharacterRagdoll ragdoll)
+    {
+        Vector3 positionSum = Vector3.zero;
+        float massSum = 0.0f;
+        foreach (var bodypart in ragdoll.partList)
+        {
+            var rig = bodypart.Rig;
+            positionSum += bodypart.transform.TransformPoint(rig.centerOfMass) * rig.mass;
+            massSum += rig.mass;
+        }
+
+        return positionSum / massSum;
     }
 
     static Vector3 GetRagdollCameraPosition(MainCameraMovement __instance)

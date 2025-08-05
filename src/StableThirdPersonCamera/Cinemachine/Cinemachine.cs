@@ -1,7 +1,7 @@
 using Unity.Cinemachine;
 using UnityEngine;
 
-namespace Linkoid.Peak.StableCamera;
+namespace StableThirdPersonCamera;
 public static class Cinemachine
 {
     public static Camera BrainCamera;
@@ -21,9 +21,19 @@ public static class Cinemachine
     public static int FollowDefaultPriority = 3;
     public static bool WasClimbing = false;
     
+    internal static CinemachineThirdPersonFollow.ObstacleSettings Default => new CinemachineThirdPersonFollow.ObstacleSettings()
+    {
+        Enabled = false,
+        CollisionFilter = (LayerMask) 1,
+        IgnoreTag = string.Empty,
+        CameraRadius = 0.2f,
+        DampingIntoCollision = 0.0f,
+        DampingFromCollision = 0.5f
+    };
+    
     public static void SetUpComponents(GameObject mainCamera)
     {
-        StableCamera.LogToScreen("Setting up Cinemachine Takeover");
+        StableCamera.LogToScreen("Setting up third person cameras...");
         var mainCam = MainCamera.instance;
         if (mainCam.transform != mainCamera.transform)
         {
@@ -55,7 +65,7 @@ public static class Cinemachine
         //mainCam.GetComponent<AudioListener>().enabled = false;
         //FixCameraQuads();
         
-        var obstacles = CinemachineThirdPersonFollow.ObstacleSettings.Default;
+        var obstacles = Default;
         obstacles.Enabled = true;
         obstacles.CameraRadius = .5f;
         obstacles.DampingFromCollision = 0.75f;
@@ -100,6 +110,7 @@ public static class Cinemachine
         var dummyMain = MainCameraMovementPatch.SubstituteTransform.gameObject.AddComponent<MainCamera>();
         dummyMain.cam = DummyCamera;
         BrainCamera.GetComponent<MainCamera>().enabled = false;
+        StableCamera.LogSetupSuccess();
     }
 
     public static void UpdateVCamPriorities(bool playerIsClimbing)
@@ -126,7 +137,7 @@ public static class Cinemachine
             if (quad.cam != null)
                 continue;
             quadsWereBroke = true;
-            quad.cam = Linkoid.Peak.StableCamera.Cinemachine.BrainCamera;
+            quad.cam = Cinemachine.BrainCamera;
         }
         if (quadsWereBroke)
             StableCamera.LogToScreen("Quads were broke again");

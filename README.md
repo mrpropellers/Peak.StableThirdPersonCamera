@@ -1,5 +1,8 @@
+# <<< CURRENTLY BROKEN >>> 
+### Hi folks. This plug-in isn't working right now. As soon as I figure out why I'll push an update up.
+
 # Stable Third Person Camera
-From some guy who worked at Aggro Crab for like 3 months to make Another Crab's Treasure's very cool and normal camera that never does anything weird: 
+From the guy who worked at Aggro Crab for like 3 months to make Another Crab's Treasure's very cool and normal camera that never does anything weird: 
 it's a stabilized third-person camera for PEAK!! Based on linkoid's stabilization code,
 extended to keep the camera in third person all the time.
 
