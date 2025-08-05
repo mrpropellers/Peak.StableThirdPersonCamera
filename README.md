@@ -1,27 +1,22 @@
-## <== PARTIALLY BROKEN ==>
-Hi folks. This mod isn't working right now when installed with Mod Manager. Until I figure out how to fix that,
- the only way to use this mod is to install it manually alongside BepinEx. Instructions for installing BepinEx can be found
-here: https://docs.bepinex.dev/articles/user_guide/installation/index.html
-
-Once BepinEx is installed, you should be able to unzip this mod into the plug-ins  folder and it will work fine.
-
 # Stable Third Person Camera
-From some guy who worked at Aggro Crab for like 3 months and made a very cool and normal camera that never does anything weird: 
-it's a stabilized third-person camera for PEAK!! Based on linkoid's stabilization code,
+From the same guy who brought you Another Crab's Treasure's very cool and normal camera: 
+It's a wonky third-person camera for PEAK!! Based on linkoid's stabilization code,
 extended to keep the camera in third person all the time.
 
 Press *N* (configurable) to toggle the camera on/off in-game.
 
 ## Configuration
-C O M I N G  S O O N
+TODO: Right now, most of the config values are inherited from linkoid's StableCamera mod and don't really do anything. 
+I'll fix that eventually. 
 
 ## Known Issues
+* Binoculars don't work right
 * Camera gets jumpy around pointy rocks
-* No handling for text-having objects that require the player to be in first-person to read them (like the scout guide book)
+* No handling for text-having objects that require the player to be in first-person to read them
 * Camera seems to be casting a weird little circular shadow
 * Player's own backpack doesn't render when wearing on back
-* Binoculars probably don't work (haven't seen em yet)
 
 ## Bugs / Contact
-Report bugs and feature requests on the repository page here: https://github.com/mrpropellers/Peak.StableThirdPersonCamera/issues
-Things which are not bugs or issues with the mod or I cannot reproduce easily will be closed without comment. If there is something you really think needs to be addressed, including a video of the problem is the best way to get it prioritized.
+Report bugs and feature requests on the repository page here: https://github.com/mrpropellers/Peak.StableThirdPersonCamera/issues or
+yell at me on bsky: https://bsky.app/profile/leftout.itch.io (I will probably tell you to go make an issue on github)
+If there is something you really think needs to be addressed, including a video of the problem is the best way to get it prioritized.

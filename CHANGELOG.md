@@ -1,3 +1,6 @@
+0.1.4
+* Updated instructions again because it's working now??
+
 0.1.3
 * Updating instructions to point at manual BepinEx install.
 
