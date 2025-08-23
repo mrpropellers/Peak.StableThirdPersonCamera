@@ -25,6 +25,8 @@ in the BepInEx folder or in the mod manager.
 * **Extra Climbing FOV**
 	- Controls how much the camera's field of view expands while climbing.
 	- A value of 0 prevents the FOV from changing; 40 is the game's original value.
+	- **NOTE:** *The PEAK devs have since added an identical option for this in the base game settings,
+	  but this option remains in the mod to preserve the out-of-the-box experience. It overrides the base game's new setting.*
 	- Default: 0.0
 * **Dizzy Effect Strength**
 	- Option to adjust the strength factor of the dizzy camera effect, e.g. when recovering from passing out.
