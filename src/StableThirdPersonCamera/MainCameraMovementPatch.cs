@@ -7,7 +7,6 @@ namespace StableThirdPersonCamera;
 internal static class MainCameraMovementPatch
 {
     public static Transform SubstituteTransform;
-    
 
     [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.CharacterCam))]
     static bool CharacterCam_Prefix(MainCameraMovement __instance)
@@ -22,12 +21,9 @@ internal static class MainCameraMovementPatch
         {
             return true;
         }
-        // Call this before the early return to ensure the meshes get re-enabled if StableCamera is disabled in-game
-        //ConditionallyDisableMeshRenderers(__instance);
 
         if (Character.localCharacter == null) return false;
 
-        //     && !(characterState.isRopeClimbing || characterState.isVineClimbing);
         __instance.cam.cam.fieldOfView = __instance.GetFov();
         
         // Handle Rotation

@@ -1,5 +1,5 @@
 [config]
-schemaVersion = "0.0.1"
+schemaVersion = "0.0.2"
 
 [general]
 repository = "https://thunderstore.io"

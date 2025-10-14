@@ -9,6 +9,14 @@ using UnityEngine;
 
 namespace StableThirdPersonCamera;
 
+public static class Settings
+{
+    static ConfigModel Cfg => StableThirdPersonCamera.Config;
+
+    public static bool PutAudioListenerOnBody
+        => Cfg.AdjustAudioSpatialization.Value;
+}
+
 internal readonly record struct ConfigModel(ConfigFile configFile)
 {
     public readonly ConfigEntry<bool>  Enabled             = 
@@ -38,57 +46,63 @@ internal readonly record struct ConfigModel(ConfigFile configFile)
             new AcceptableValueRange<float>(1f, 10f)));
     // public readonly ConfigEntry<float> DizzyEffectStrength = configFile.Bind("StableCamera", nameof(DizzyEffectStrength), 0f, new ConfigDescription("Strength factor of the dizzy camera effect, e.g. when recovering from passing out.", new AcceptableValueRange<float>(0.0f, 1.0f)));
     // public readonly ConfigEntry<float> ShakeEffectStrength = configFile.Bind("StableCamera", nameof(ShakeEffectStrength), 0f, new ConfigDescription("Strength factor of the camera shake effect, e.g. when stamina is exhausted while climbing.", new AcceptableValueRange<float>(0.0f, 1.0f)));
+    // TODO: Add some config binds for commonly tweaked Cinemachine parameters (collider radius, camera distance, etc.)
+    public readonly ConfigEntry<bool> AdjustAudioSpatialization = configFile.Bind("StableCamera", nameof(AdjustAudioSpatialization),
+        true, new ConfigDescription("PEAK's sound effects are mastered assuming the camera is inside the player.  " +
+            "When the camera is farther from the player, the audio would be much quieter as a result. We correct for this by moving the camera's audio listener onto the player, " +
+            "which keeps it sounding like it did before, but is a less realistic audio presentation. Set this to false for more 'realism,' but much quieter SFX."));
+    
     public ConfigFile configFile { get; } = configFile;
 
-    public void RunMigrations()
-    {
-        configFile.SaveOnConfigSet = false;
-        try
-        {
-            Migrate_1_1();
-            configFile.Save();
-        }
-        catch (Exception ex)
-        {
-            StableThirdPersonCamera.Logger.LogWarning($"An error occured during config migration. Please delete the config file.\n{ex.Message}\n{ex.StackTrace}");
-        }
-        configFile.SaveOnConfigSet = true;
-    }
+    // public void RunMigrations()
+    // {
+    //     configFile.SaveOnConfigSet = false;
+    //     try
+    //     {
+    //         Migrate_1_1();
+    //         configFile.Save();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         StableThirdPersonCamera.Logger.LogWarning($"An error occured during config migration. Please delete the config file.\n{ex.Message}\n{ex.StackTrace}");
+    //     }
+    //     configFile.SaveOnConfigSet = true;
+    // }
 
-    private bool Migrate_1_1()
-    {
-        bool hasOldConfig = false;
-        hasOldConfig |= TryGetOrphanedEntry<bool>(configFile, new ConfigDefinition("StableCamera", "StabilizeCamera"), out var oldStabilizeCamera);
+    // private bool Migrate_1_1()
+    // {
+    //     bool hasOldConfig = false;
+    //     hasOldConfig |= TryGetOrphanedEntry<bool>(configFile, new ConfigDefinition("StableCamera", "StabilizeCamera"), out var oldStabilizeCamera);
 
-        if (!hasOldConfig) return false;
+    //     if (!hasOldConfig) return false;
 
-        StableThirdPersonCamera.Logger.LogMessage("Migrating config from v1.0 to v1.1");
+    //     StableThirdPersonCamera.Logger.LogMessage("Migrating config from v1.0 to v1.1");
 
-        if (oldStabilizeCamera != null)
-        {
-            Enabled.Value = oldStabilizeCamera.Value;
-        }
+    //     if (oldStabilizeCamera != null)
+    //     {
+    //         Enabled.Value = oldStabilizeCamera.Value;
+    //     }
 
-        configFile.Remove(oldStabilizeCamera?.Definition);
+    //     configFile.Remove(oldStabilizeCamera?.Definition);
 
-        return true;
-    }
+    //     return true;
+    // }
     
-    static readonly MethodInfo prop_OrphanedEntries = AccessTools.DeclaredPropertyGetter(typeof(ConfigFile), "OrphanedEntries");
-    
-    public static IReadOnlyCollection<ConfigDefinition> GetOrphanedDefinitions(ConfigFile configFile)
-    {
-        var orphanedEntries = (Dictionary<ConfigDefinition, string>)prop_OrphanedEntries.Invoke(configFile, Array.Empty<object>());
-        return orphanedEntries.Keys;
-    }
+    // static readonly MethodInfo prop_OrphanedEntries = AccessTools.DeclaredPropertyGetter(typeof(ConfigFile), "OrphanedEntries");
+    // 
+    // public static IReadOnlyCollection<ConfigDefinition> GetOrphanedDefinitions(ConfigFile configFile)
+    // {
+    //     var orphanedEntries = (Dictionary<ConfigDefinition, string>)prop_OrphanedEntries.Invoke(configFile, Array.Empty<object>());
+    //     return orphanedEntries.Keys;
+    // }
 
-    public static bool TryGetOrphanedEntry<T>(ConfigFile configFile, ConfigDefinition configDefinition, [NotNullWhen(true)] out ConfigEntry<T>? entry, T defaultValue = default!, ConfigDescription? configDescription = null)
-    {
-        entry = null;
-        if (!GetOrphanedDefinitions(configFile).Contains(configDefinition))
-            return false;
+    // public static bool TryGetOrphanedEntry<T>(ConfigFile configFile, ConfigDefinition configDefinition, [NotNullWhen(true)] out ConfigEntry<T>? entry, T defaultValue = default!, ConfigDescription? configDescription = null)
+    // {
+    //     entry = null;
+    //     if (!GetOrphanedDefinitions(configFile).Contains(configDefinition))
+    //         return false;
 
-        entry = configFile.Bind(configDefinition, defaultValue, configDescription);
-        return true;
-    }
+    //     entry = configFile.Bind(configDefinition, defaultValue, configDescription);
+    //     return true;
+    // }
 }

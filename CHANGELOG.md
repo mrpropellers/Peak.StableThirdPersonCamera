@@ -1,3 +1,11 @@
+0.1.7
+* Fix audio listener not properly tracking ghost camera when player is dead
+
+0.1.6
+* "Fix" audio spatialization by playing audio as if the camera is still inside the player. 
+<br>NOTE: This will make SFX significantly louder for those that used earlier versions of this mod.
+* Add option to turn audio spatialization fix off in config
+
 0.1.5
 * Cleared out some crufty config variables
 * Disabling the mod mid-game should be less glitchy (you still need to start a new game to fully turn it off)

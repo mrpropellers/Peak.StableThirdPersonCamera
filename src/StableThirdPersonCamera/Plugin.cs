@@ -21,7 +21,7 @@ public class StableThirdPersonCamera : BaseUnityPlugin
         Instance = this;
 
         Config = new ConfigModel(base.Config);
-        Config.RunMigrations();
+        //Config.RunMigrations();
 
         Patch();
 
