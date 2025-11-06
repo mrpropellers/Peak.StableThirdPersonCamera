@@ -9,14 +9,12 @@ Video of mod in action here: https://bsky.app/profile/leftout.itch.io/post/3lvoc
 
 ## Configuration
 * Mostly you can just turn it on and off. Note that once you turn it ON, the first-person camera will be in a partially
- broken state even if you turn it off again. You'll need to start a new run with it OFF to restore the original camera
+ broken state even if you turn it off again. You'll need to start a new run with it OFF to fully restore the original camera
+* There are some other settings for FoV and camera distance, but I have already set the defaults to the best values so I wouldn't worry about it
 
 ## Known Issues
-* Throwing is weird in third person because it still uses the player's body position 
-(you can temporarily disable 3rd Person for more accurate throwing)
 * Binoculars don't work right
 * Camera gets jumpy around especially pointy rocks and really narrow spaces
-* Text-having objects fly off into infinity when player attempts to read them (they will be broken even if 3rd-person is disabled mid-game)
 * Camera seems to be casting a weird little circular shadow
 * Player's own backpack doesn't render when wearing on back
 * End-game sequence probably looks weird (I haven't beat the game with the mod enabled lol)

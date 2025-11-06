@@ -1,3 +1,6 @@
+1.42.1
+* Update README
+
 1.42.0
 * Changing versioning to match PEAK versions
 * Fix audio listener not properly tracking ghost camera for real this time??
