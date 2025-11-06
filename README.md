@@ -8,9 +8,9 @@ Press *N* (configurable) to toggle the camera on/off in-game.
 Video of mod in action here: https://bsky.app/profile/leftout.itch.io/post/3lvockypip227
 
 ## Configuration
-* Mostly you can just turn it on and off. Note that once you turn it ON, the first-person camera will be in a partially
- broken state even if you turn it off again. You'll need to start a new run with it OFF to fully restore the original camera
-* There are some other settings for FoV and camera distance, but I have already set the defaults to the best values so I wouldn't worry about it
+* FoV settings are set in the game's normal FoV Menu! I recommend something like 60 FoV + 20 extra climbing FoV for PEAK experience
+* Settings for Camera distance separately adjustable for walking and climbing. Default values are set to a middle ground between fairness and aesthetics
+* Leave AdjustAudioSpatialization on True unless you feel very strongly about changing it
 
 ## Known Issues
 * Binoculars don't work right

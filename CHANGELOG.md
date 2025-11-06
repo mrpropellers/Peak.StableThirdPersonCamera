@@ -1,3 +1,9 @@
+1.42.2
+* Removed ExtraClimbingFoV config value (uses the in-game setting instead)
+* Tuned camera distances to feel fairer
+* Hide player's head when charging a long-distance throw
+* Enabling/Disabling the mod will reload the config file (so you can see changes immediately in game)
+
 1.42.1
 * Update README
 

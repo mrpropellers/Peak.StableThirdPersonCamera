@@ -41,8 +41,14 @@ public class CameraPrioritySetter : MonoBehaviour
         {
             var inClimbCam = Time.time - _timeLastClimbed < k_OffClimbTransitionDelay;
             Cameras.AimCamera.Priority = FirstPersonDefaultPriority;
-            Cameras.FollowCamera.Priority = inClimbCam ? FollowDefaultPriority : TopPriority;
-            Cameras.ClimbCamera.Priority = inClimbCam ? TopPriority : FollowDefaultPriority;
+            Cameras.FollowCamera.VirtualCamera.Priority = 
+                inClimbCam 
+                    ? FollowDefaultPriority 
+                    : TopPriority;
+            Cameras.ClimbCamera.VirtualCamera.Priority = 
+                inClimbCam 
+                    ? TopPriority 
+                    : FollowDefaultPriority;
         }
     }
 }

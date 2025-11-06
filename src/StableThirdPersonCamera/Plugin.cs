@@ -43,8 +43,7 @@ public class StableThirdPersonCamera : BaseUnityPlugin
     {
         if (Input.GetKeyDown(Config.ToggleKey.Value))
         {
-            Config.Enabled.Value = !Config.Enabled.Value;
-            OnToggleEnabled(Config.Enabled.Value);
+            OnToggleEnabled();
         }
 
         if (!Config.Enabled.Value)
@@ -53,14 +52,29 @@ public class StableThirdPersonCamera : BaseUnityPlugin
         // TODO: Ensure camera config values stay up to date with in-game config changes
     }
 
-    private void OnToggleEnabled(bool enabled)
+    private void RefreshConfigImpl()
     {
-        Logger.LogInfo($"Stable Camera Enabled: {Config.Enabled.Value}");
+        Config.configFile.Reload();
+        //Config = new ConfigModel(base.Config);
+    }
+    public static void RefreshConfig()
+    {
+        Instance.RefreshConfigImpl();
+    }
 
+    private void OnToggleEnabled()
+    {
+        var wasEnabled = Config.Enabled.Value;
+        Logger.LogInfo($"Stable Camera Enabled: {!wasEnabled}");
+        RefreshConfig();
+        Config.Enabled.Value = !wasEnabled;
+        if (Config.Enabled.Value)
+            Cameras.ApplyConfigValues();
+        
         var log = Object.FindObjectOfType<PlayerConnectionLog>();
-        if (log == null) return;
-
-        log.AddMessage($"{log.GetColorTag(log.userColor)}Third Person Camera</color> has been {log.GetColorTag(enabled ? log.joinedColor : log.leftColor)}{(enabled ? "enabled" : "disabled")}</color>");
+        if (log != null)
+            log.AddMessage($"{log.GetColorTag(log.userColor)}Third Person Camera</color> has been {log.GetColorTag(!wasEnabled ? log.joinedColor : log.leftColor)}{(!wasEnabled ? "enabled" : "disabled")}</color>");
+        
         //if (enabled && log.sfxJoin) log.sfxJoin.Play();
         //if (!enabled && log.sfxLeave) log.sfxLeave.Play();
     }

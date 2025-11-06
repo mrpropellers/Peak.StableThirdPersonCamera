@@ -47,8 +47,8 @@ public static class Cameras
     public static MainCameraMovement PeakCameraMover { get; private set; }
     public static CinemachineCamera FirstPersonCamera;
     public static ConditionalMeshHider MeshHider;
-    public static CinemachineCamera FollowCamera;
-    public static CinemachineCamera ClimbCamera;
+    public static CinemachineThirdPersonFollow FollowCamera;
+    public static CinemachineThirdPersonFollow ClimbCamera;
     public static CinemachineCamera AimCamera;
     
     internal static CinemachineThirdPersonFollow.ObstacleSettings Default => new CinemachineThirdPersonFollow.ObstacleSettings()
@@ -60,10 +60,21 @@ public static class Cameras
         DampingIntoCollision = 0.0f,
         DampingFromCollision = 0.5f
     };
+
+    public static void ApplyConfigValues()
+    {
+        if (!HasSetUpCameras)
+            return;
+        var cameraDistance = StableThirdPersonCamera.Config.WalkingCameraDistance.Value;
+        FollowCamera.CameraDistance = cameraDistance;
+        FollowCamera.VerticalArmLength = Mathf.Sin(12f * Mathf.Deg2Rad) * cameraDistance;
+        ClimbCamera.CameraDistance = StableThirdPersonCamera.Config.ClimbingCameraDistance.Value;
+    }
     
     public static void SetUpComponents(GameObject mainCamera)
     {
         StableThirdPersonCamera.LogToScreen("Setting up third person cameras...");
+        StableThirdPersonCamera.RefreshConfig();
         var mainCam = MainCamera.instance;
         if (mainCam.transform != mainCamera.transform)
         {
@@ -132,14 +143,11 @@ public static class Cameras
         followCam.StandbyUpdate = CinemachineVirtualCameraBase.StandbyUpdateMode.RoundRobin;
         var followThirdPerson = followGameObject.AddComponent<CinemachineThirdPersonFollow>();
         followThirdPerson.Damping = new Vector3(0.75f, 0.6f, 0.75f);
-        var cameraDistance = StableThirdPersonCamera.Config.WalkingCameraDistance.Value;
-        followThirdPerson.CameraDistance = cameraDistance;
-        followThirdPerson.VerticalArmLength = Mathf.Sin(12f * Mathf.Deg2Rad) * cameraDistance;
         followThirdPerson.CameraSide = 1;
         followThirdPerson.AvoidObstacles = obstacles;
         followCam.BlendHint = CinemachineCore.BlendHints.InheritPosition;
         followGameObject.AddComponent<MatchCameraProperties>().CameraToMatch = DummyCamera;
-        FollowCamera = followCam;
+        FollowCamera = followThirdPerson;
 
         //climbCam = null;
         var climbGameObject = new GameObject("ThirdPersonClimbCamera");
@@ -151,10 +159,9 @@ public static class Cameras
         var climbThirdPerson = climbGameObject.AddComponent<CinemachineThirdPersonFollow>();
         climbThirdPerson.Damping = new Vector3(0.75f, 0.6f, 0.75f);
         climbThirdPerson.ShoulderOffset = new Vector3(0f, -0.2f, -0.5f);
-        climbThirdPerson.CameraDistance = StableThirdPersonCamera.Config.ClimbingCameraDistance.Value;
         climbThirdPerson.AvoidObstacles = obstacles;
         climbGameObject.AddComponent<MatchCameraProperties>().CameraToMatch = DummyCamera;
-        ClimbCamera = climbCam;
+        ClimbCamera = climbThirdPerson;
 
         var aimAvoidance = obstacles;
         aimAvoidance.DampingIntoCollision = 0.05f;
@@ -175,6 +182,8 @@ public static class Cameras
         aimCam.BlendHint = CinemachineCore.BlendHints.InheritPosition;
         aimGameObject.AddComponent<MatchCameraProperties>().CameraToMatch = DummyCamera;
         AimCamera = aimCam;
+        
+        ApplyConfigValues();
 
         var toAimBlend = new CinemachineBlenderSettings.CustomBlend
         {

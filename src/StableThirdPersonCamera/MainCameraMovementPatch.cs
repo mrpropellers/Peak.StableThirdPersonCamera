@@ -64,28 +64,6 @@ internal static class MainCameraMovementPatch
         return false;
     }
 
-    [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.GetFov))]
-    static bool GetFov_Prefix(MainCameraMovement __instance, ref float __result)
-    {
-        if (!Cameras.HasSetUpCameras) return true;
-        if (Character.localCharacter == null) return true;
-
-        float num = __instance.fovSetting.Value;
-        if (num < 60f)
-        {
-            num = 70f;
-        }
-        
-        __instance.currentFov = Mathf.Lerp(
-            __instance.currentFov,
-            num + (Character.localCharacter.data.isClimbing ? StableThirdPersonCamera.Config.ExtraClimbingFOV.Value : 0), // Changed
-            Time.deltaTime * 5f
-        );
-
-        __result = __instance.currentFov;
-        return false;
-    }
-
     [HarmonyPrefix, HarmonyPatch(typeof(Character), nameof(Character.GetCameraPos))]
     static bool GetCameraPos_Prefix(Character __instance, ref Vector3 __result, float forwardOffset)
     {
