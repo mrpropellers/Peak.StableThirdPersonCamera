@@ -1,3 +1,11 @@
+1.42.0
+* Changing versioning to match PEAK versions
+* Fix audio listener not properly tracking ghost camera for real this time??
+* Move camera into first person when player is aiming a thrown item
+* Improved handling of "can I interact with this" checks
+* Fix readable items like the Scoutmaster Manual flying off into space 
+* Improved placement of player name badges over their heads
+
 0.1.7
 * Fix audio listener not properly tracking ghost camera when player is dead
 

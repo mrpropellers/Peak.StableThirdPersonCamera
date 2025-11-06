@@ -1,3 +1,4 @@
+using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -8,14 +9,20 @@ public static class Cameras
     const float ragdollCamThreshold = 0.35f;
     const float throwChargeThreshold = 0.075f;
 
+    static bool CharacterExists => !ReferenceEquals(null, Character.localCharacter);
     public static Camera BrainCamera;
+    static CinemachineBrain Brain;
+    static float CameraBlendAmount => Brain.ActiveBlend.TimeInBlend / Brain.ActiveBlend.Duration;
 
     public static bool ShouldSetUpCameras => StableThirdPersonCamera.Enabled && BrainCamera == null;
 
-    public static bool ShouldGoFirstPersonForThrow
-        => Character.localCharacter != null
+    public static bool IsStartingThrowCharge
+        => CharacterExists
            && Character.localCharacter.refs.items.throwChargeLevel > 0.075f;
 
+    public static bool IsAimingThrow
+        => CharacterExists && Character.localCharacter.refs.items.throwChargeLevel > 0.75f;
+    
     public static bool ProbablyInThirdPerson
     {
         get
@@ -23,8 +30,8 @@ public static class Cameras
             if (Character.localCharacter == null)
                 return false;
             var data = Character.localCharacter.data;
-            var modIsInThirdPerson = StableThirdPersonCamera.Enabled 
-                                     && !ShouldGoFirstPersonForThrow;
+            var modIsInThirdPerson =
+                StableThirdPersonCamera.Enabled;
             var probablyRagdolling = PeakCameraMover.ragdollCam > ragdollCamThreshold;
             var probablySpectating = !data.fullyConscious || Character.localCharacter.IsGhost;
             return modIsInThirdPerson || probablyRagdolling || probablySpectating;
@@ -37,20 +44,19 @@ public static class Cameras
     // This will attach itself to the BrainCamera and follow it in lockstep, giving stuff that wants to change properties
     // that Cinemachine locks to its VCams a target. Then we'll copy them to our cameras
     public static Camera DummyCamera;
-    // MainCameraMovement will drive this instead, which gives the CinemachineCameras a follow target that
-    // mirrors the original
     public static MainCameraMovement PeakCameraMover { get; private set; }
     public static CinemachineCamera FirstPersonCamera;
     public static ConditionalMeshHider MeshHider;
     public static CinemachineCamera FollowCamera;
     public static CinemachineCamera ClimbCamera;
+    public static CinemachineCamera AimCamera;
     
     internal static CinemachineThirdPersonFollow.ObstacleSettings Default => new CinemachineThirdPersonFollow.ObstacleSettings()
     {
         Enabled = false,
         CollisionFilter = (LayerMask) 1,
         IgnoreTag = string.Empty,
-        CameraRadius = 0.1f,
+        CameraRadius = 0.5f,
         DampingIntoCollision = 0.0f,
         DampingFromCollision = 0.5f
     };
@@ -70,19 +76,26 @@ public static class Cameras
             MeshHider = new GameObject("Mesh Hider").AddComponent<ConditionalMeshHider>();
         }
         
+        BrainCamera = mainCamera.GetComponent<Camera>();
+        Brain = mainCamera.AddComponent<CinemachineBrain>();
+        mainCamera.AddComponent<CameraPrioritySetter>();
+        
         MainCameraMovementPatch.SubstituteTransform = new GameObject("New Camera Target").transform;
         var mainTf = mainCamera.transform;
         MainCameraMovementPatch.SubstituteTransform.SetPositionAndRotation(mainTf.position, mainTf.rotation);
+        var dummyObject = new GameObject("DummyCamera");
+        dummyObject.transform.SetParent(MainCameraMovementPatch.SubstituteTransform);
+        // We want the fake MainCamera to be in the same position as the player head, but in the same orientation as
+        // the current camera, in case someone is raycasting from the transform instead of from the camera it references
+        dummyObject.AddComponent<AimFixer>();
+        DummyCamera = dummyObject.AddComponent<Camera>();
+        DummyCamera.enabled = false;
+        var dummyMain = MainCameraMovementPatch.SubstituteTransform.gameObject.AddComponent<MainCamera>();
+        dummyMain.cam = DummyCamera;
+        BrainCamera.GetComponent<MainCamera>().enabled = false;
         // CinemachineBrain is going to take control of the camera properties for the MainCam, but MainCameraMovement
         // ALSO wants to set some camera properties, so we point MainCameraMovement at the DummyCamera and then copy
         // those properties over late
-        var dummyObject = new GameObject("DummyCamera");
-        dummyObject.transform.SetParent(mainTf);
-        DummyCamera = dummyObject.AddComponent<Camera>();
-        DummyCamera.enabled = false;
-        BrainCamera = mainCamera.GetComponent<Camera>();
-        mainCamera.AddComponent<CinemachineBrain>();
-        mainCamera.AddComponent<CameraPrioritySetter>();
         
         var firstPersonCam = new GameObject("FirstPersonCamera").AddComponent<CinemachineCamera>();
         firstPersonCam.Priority = CameraPrioritySetter.FirstPersonDefaultPriority;
@@ -101,7 +114,7 @@ public static class Cameras
         
         var obstacles = Default;
         obstacles.Enabled = true;
-        obstacles.CameraRadius = .5f;
+        obstacles.CameraRadius = .2f;
         obstacles.DampingFromCollision = 0.75f;
         obstacles.DampingIntoCollision = 0.75f;
         obstacles.CollisionFilter = LayerMask.GetMask(new string[]
@@ -119,9 +132,10 @@ public static class Cameras
         followCam.StandbyUpdate = CinemachineVirtualCameraBase.StandbyUpdateMode.RoundRobin;
         var followThirdPerson = followGameObject.AddComponent<CinemachineThirdPersonFollow>();
         followThirdPerson.Damping = new Vector3(0.75f, 0.6f, 0.75f);
-        followThirdPerson.VerticalArmLength = 1f;
+        var cameraDistance = StableThirdPersonCamera.Config.WalkingCameraDistance.Value;
+        followThirdPerson.CameraDistance = cameraDistance;
+        followThirdPerson.VerticalArmLength = Mathf.Sin(12f * Mathf.Deg2Rad) * cameraDistance;
         followThirdPerson.CameraSide = 1;
-        followThirdPerson.CameraDistance = StableThirdPersonCamera.Config.WalkingCameraDistance.Value;
         followThirdPerson.AvoidObstacles = obstacles;
         followCam.BlendHint = CinemachineCore.BlendHints.InheritPosition;
         followGameObject.AddComponent<MatchCameraProperties>().CameraToMatch = DummyCamera;
@@ -136,15 +150,47 @@ public static class Cameras
         climbCam.BlendHint = CinemachineCore.BlendHints.InheritPosition;
         var climbThirdPerson = climbGameObject.AddComponent<CinemachineThirdPersonFollow>();
         climbThirdPerson.Damping = new Vector3(0.75f, 0.6f, 0.75f);
-        climbThirdPerson.ShoulderOffset = new Vector3(0f, 0f, -0.5f);
+        climbThirdPerson.ShoulderOffset = new Vector3(0f, -0.2f, -0.5f);
         climbThirdPerson.CameraDistance = StableThirdPersonCamera.Config.ClimbingCameraDistance.Value;
         climbThirdPerson.AvoidObstacles = obstacles;
         climbGameObject.AddComponent<MatchCameraProperties>().CameraToMatch = DummyCamera;
         ClimbCamera = climbCam;
 
-        var dummyMain = MainCameraMovementPatch.SubstituteTransform.gameObject.AddComponent<MainCamera>();
-        dummyMain.cam = DummyCamera;
-        BrainCamera.GetComponent<MainCamera>().enabled = false;
+        var aimAvoidance = obstacles;
+        aimAvoidance.DampingIntoCollision = 0.05f;
+        aimAvoidance.CameraRadius = 0.3f;
+        
+        var aimGameObject = new GameObject("ThirdPersonAimCamera");
+        var aimCam = aimGameObject.AddComponent<CinemachineCamera>();
+        aimCam.Follow = MainCameraMovementPatch.SubstituteTransform;
+        //aimCam.LookAt = follow;
+        aimCam.Priority = CameraPrioritySetter.FirstPersonDefaultPriority;
+        aimCam.StandbyUpdate = CinemachineVirtualCameraBase.StandbyUpdateMode.RoundRobin;
+        var aimThirdPerson = aimGameObject.AddComponent<CinemachineThirdPersonFollow>();
+        aimThirdPerson.Damping = new Vector3(0.1f, 0.1f, 0.1f);
+        aimThirdPerson.VerticalArmLength = 0f;
+        aimThirdPerson.CameraSide = 1;
+        aimThirdPerson.CameraDistance = 1.5f;
+        aimThirdPerson.AvoidObstacles = aimAvoidance;
+        aimCam.BlendHint = CinemachineCore.BlendHints.InheritPosition;
+        aimGameObject.AddComponent<MatchCameraProperties>().CameraToMatch = DummyCamera;
+        AimCamera = aimCam;
+
+        var toAimBlend = new CinemachineBlenderSettings.CustomBlend
+        {
+            To = aimCam.name, 
+            Blend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.HardIn, .6f)
+        };
+        var fromAimBlend = new CinemachineBlenderSettings.CustomBlend
+        {
+            From = aimCam.name, 
+            Blend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.HardOut, .2f)
+        };
+        var newBlends = Brain.CustomBlends.CustomBlends.Append(toAimBlend);
+        newBlends = newBlends.Append(fromAimBlend);
+        // TODO: Need to confirm this is actually doing something... not convinced it is
+        Brain.CustomBlends.CustomBlends = newBlends.ToArray();
+        Brain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.EaseInOut, 1f);
         StableThirdPersonCamera.LogSetupSuccess();
     }
 }

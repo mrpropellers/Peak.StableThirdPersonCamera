@@ -31,11 +31,11 @@ internal readonly record struct ConfigModel(ConfigFile configFile)
     //     new ConfigDescription("Whether or not the player's mesh will be rendered. Will cause your arms to be invisible in first person, " +
     //         "but when TrackingPower is set to less than 1, this will prevent the camera from clipping with the player."));
     //public readonly ConfigEntry<bool>  ThirdPersonRagdoll  = configFile.Bind("StableCamera", nameof(ThirdPersonRagdoll), true, "Switch to a third-person camera whenever the character ragdolls.");
-    public readonly ConfigEntry<float> ExtraClimbingFOV    = configFile.Bind("StableCamera", nameof(ExtraClimbingFOV), 0f, 
+    public readonly ConfigEntry<float> ExtraClimbingFOV    = configFile.Bind("StableCamera", nameof(ExtraClimbingFOV), 10f, 
         new ConfigDescription("How much the camera's field of view expands while climbing. A value of 0 prevents the FOV from changing; 40 is the game's original value.", new AcceptableValueRange<float>(0.0f, 70.0f)));
 
     public readonly ConfigEntry<float> WalkingCameraDistance = configFile.Bind("StableCamera",
-        nameof(WalkingCameraDistance), 5f,
+        nameof(WalkingCameraDistance), 4f,
         new ConfigDescription(
             "How far away from the character the camera floats when not climbing. Setting this too high will make the game really easy.",
         new AcceptableValueRange<float>(1f, 10f)));

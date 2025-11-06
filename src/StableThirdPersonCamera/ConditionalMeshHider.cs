@@ -5,6 +5,9 @@ namespace StableThirdPersonCamera;
 
 public class ConditionalMeshHider : MonoBehaviour
 {
+    float _timeLastThrowing = 0f;
+    float k_ShowHeadDelayAfterThrow = .75f;
+    
     public static HideTheBody? PlayerBodyHider;
     
     public void Update()
@@ -27,10 +30,14 @@ public class ConditionalMeshHider : MonoBehaviour
     {
         var probablyInThirdPerson = Cameras.ProbablyInThirdPerson;
         
+        if (Cameras.IsAimingThrow)
+        {
+            _timeLastThrowing = Time.time;
+        }
         // We are good to hide these meshes any time we're not in third person, even though they usually are not
         // hidden without the mod installed.
         // (This might be why the scout book disappears? If it attaches to the head mesh when open...)
-        bool shouldShowPotentiallyClippingMeshes = probablyInThirdPerson;
+        bool shouldShowPotentiallyClippingMeshes = probablyInThirdPerson && Time.time - _timeLastThrowing > k_ShowHeadDelayAfterThrow;
         PlayerBodyHider.headRend.enabled = shouldShowPotentiallyClippingMeshes;
         PlayerBodyHider.sash.enabled = shouldShowPotentiallyClippingMeshes;
         foreach (var hatRenderer in PlayerBodyHider.refs.playerHats)
@@ -39,7 +46,7 @@ public class ConditionalMeshHider : MonoBehaviour
         }
 
         // These meshes SHOULD show up in first-person view
-        bool shouldShowNonClippingMeshes = probablyInThirdPerson || !StableThirdPersonCamera.Enabled;
+        bool shouldShowNonClippingMeshes = !Cameras.IsAimingThrow && (probablyInThirdPerson || !StableThirdPersonCamera.Enabled);
         PlayerBodyHider.body.enabled = shouldShowNonClippingMeshes;
         foreach (var meshRenderer in PlayerBodyHider.costumes)
         {
