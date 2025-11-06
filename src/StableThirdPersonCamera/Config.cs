@@ -17,12 +17,25 @@ internal readonly record struct ConfigModel(ConfigFile configFile)
             "To fully disable the mod you need to start a new run with this setting toggled off.");
     public readonly ConfigEntry<KeyCode> ToggleKey         = configFile.Bind("StableCamera", nameof(ToggleKey), KeyCode.N, "The shortcut key which toggles the mod on or off in-game.");
     //public readonly ConfigEntry<bool>  StabilizeTracking   = configFile.Bind("StableCamera", nameof(StabilizeTracking), true, "Reduce camera wobble using stabilized tracking. Disable this if head clipping is more annoying than wobble.");
-    public readonly ConfigEntry<float> TrackingPower       = configFile.Bind("StableCamera", nameof(TrackingPower), 0.5f, new ConfigDescription("How aggressively the camera will follow the character. Higher values lead to more wobble, but less clipping.", new AcceptableValueRange<float>(0.1f, 400.0f)));
+    public readonly ConfigEntry<float> TrackingPower       = configFile.Bind("StableCamera", nameof(TrackingPower), 0.5f, 
+        new ConfigDescription("How aggressively the camera will follow the character. Higher values lead to more wobble, but less clipping.", new AcceptableValueRange<float>(0.1f, 400.0f)));
     // public readonly ConfigEntry<bool> HidePlayerMesh = configFile.Bind("StableCamera", nameof(HidePlayerMesh), false,
     //     new ConfigDescription("Whether or not the player's mesh will be rendered. Will cause your arms to be invisible in first person, " +
     //         "but when TrackingPower is set to less than 1, this will prevent the camera from clipping with the player."));
     //public readonly ConfigEntry<bool>  ThirdPersonRagdoll  = configFile.Bind("StableCamera", nameof(ThirdPersonRagdoll), true, "Switch to a third-person camera whenever the character ragdolls.");
-    public readonly ConfigEntry<float> ExtraClimbingFOV    = configFile.Bind("StableCamera", nameof(ExtraClimbingFOV), 0f, new ConfigDescription("How much the camera's field of view expands while climbing. A value of 0 prevents the FOV from changing; 40 is the game's original value.", new AcceptableValueRange<float>(0.0f, 70.0f)));
+    public readonly ConfigEntry<float> ExtraClimbingFOV    = configFile.Bind("StableCamera", nameof(ExtraClimbingFOV), 0f, 
+        new ConfigDescription("How much the camera's field of view expands while climbing. A value of 0 prevents the FOV from changing; 40 is the game's original value.", new AcceptableValueRange<float>(0.0f, 70.0f)));
+
+    public readonly ConfigEntry<float> WalkingCameraDistance = configFile.Bind("StableCamera",
+        nameof(WalkingCameraDistance), 5f,
+        new ConfigDescription(
+            "How far away from the character the camera floats when not climbing. Setting this too high will make the game really easy.",
+        new AcceptableValueRange<float>(1f, 10f)));
+    public readonly ConfigEntry<float> ClimbingCameraDistance = configFile.Bind("StableCamera",
+        nameof(ClimbingCameraDistance), 3f,
+        new ConfigDescription(
+            "How far away from the character the camera floats when climbing. Setting this too high will make the game really easy.",
+            new AcceptableValueRange<float>(1f, 10f)));
     // public readonly ConfigEntry<float> DizzyEffectStrength = configFile.Bind("StableCamera", nameof(DizzyEffectStrength), 0f, new ConfigDescription("Strength factor of the dizzy camera effect, e.g. when recovering from passing out.", new AcceptableValueRange<float>(0.0f, 1.0f)));
     // public readonly ConfigEntry<float> ShakeEffectStrength = configFile.Bind("StableCamera", nameof(ShakeEffectStrength), 0f, new ConfigDescription("Strength factor of the camera shake effect, e.g. when stamina is exhausted while climbing.", new AcceptableValueRange<float>(0.0f, 1.0f)));
     public ConfigFile configFile { get; } = configFile;

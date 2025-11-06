@@ -1,132 +1,32 @@
 ﻿using HarmonyLib;
-using Unity.Cinemachine;
 using UnityEngine;
-using Zorro.Core;
 
 namespace StableThirdPersonCamera;
-
-[HarmonyPatch(typeof(Singleton<MainCameraMovement>))]
-static class SingletonPatch
-{
-    // [HarmonyPrefix, HarmonyPatch("Awake")]
-    // static bool Awake_Prefix(Singleton<MainCameraMovement> __instance)
-    // {
-        // if (__instance is not MainCameraMovement mainCameraMovement)
-        // {
-            // Debug.LogWarning("<><> HARMONY LOG <><> I guess this patches other classes too?");
-            // return true;
-        // }
-        // if (!StableCamera.Config.Enabled.Value || MainCameraMovement.Instance == null)
-        // {
-            // StableCamera.LogToScreen("Allowing MainCameraMovement to do it's weird singleton stuff");
-            // return true;
-        // }
-        // 
-        // StableCamera.LogToScreen("Blocking MainCameraMovement from blowing up its whole GameObject");
-        // Component.Destroy(__instance);
-        // return false;
-    // 
-    
-}
-
-// [HarmonyPatch(typeof(Billboard), nameof(Billboard.LateUpdate))]
-// static class BillboardPatch
-// {
-//     static bool Prefix(Billboard __instance)
-//     {
-//         if (!StableCamera.Enabled)
-//             return true;
-//         __instance.transform.rotation = Quaternion.LookRotation(-(CinemachineTakeover.BrainCamera.transform.position - __instance.transform.position));
-//         return false;
-//     }
-// }
-
-
 
 [HarmonyPatch(typeof(MainCameraMovement))]
 internal static class MainCameraMovementPatch
 {
     public static Transform SubstituteTransform;
     
-    static void ConditionallyDisableMeshRenderers(MainCameraMovement mainCamera)
-    {
-        // Roughly estimated value for when we're far enough into the ragdoll cam that we should start seeing the player body
-        const float ragdollCamThreshold = 0.35f;
-        
-        if (CameraHelpers.PlayerBodyHider == null)
-        {
-            // Fetch this component because it has direct references to all the renderers we care about
-            CameraHelpers.PlayerBodyHider = Character.localCharacter.GetComponentInChildren<HideTheBody>();
-            if (CameraHelpers.PlayerBodyHider == null)
-                return;
-        }
-        
-        // Turn body rendering off IFF we are not using the 3rd person cam AND we're not passed out (putting us in 3rd person camera)
-        var characterData = Character.localCharacter?.data;
-        bool probablyInThirdPerson = StableThirdPersonCamera.Enabled;
-        if (characterData != null)
-        {
-            var probablyInRagdollCam = mainCamera.ragdollCam > ragdollCamThreshold;
-            probablyInThirdPerson = probablyInThirdPerson || probablyInRagdollCam ||
-                characterData.passedOut || characterData.fullyPassedOut || characterData.dead;
-        }
-
-        // We are good to hide these meshes any time we're not in third person, even though they usually are not
-        // hidden without the mod installed.
-        // (This might be why the scout book disappears? If it attaches to the head mesh when open...)
-        bool shouldShowPotentiallyClippingMeshes = probablyInThirdPerson;
-        CameraHelpers.PlayerBodyHider.headRend.enabled = shouldShowPotentiallyClippingMeshes;
-        CameraHelpers.PlayerBodyHider.sash.enabled = shouldShowPotentiallyClippingMeshes;
-        foreach (var hatRenderer in CameraHelpers.PlayerBodyHider.refs.playerHats)
-        {
-            hatRenderer.enabled = shouldShowPotentiallyClippingMeshes;
-        }
-
-        // These meshes SHOULD show up in first-person view
-        bool shouldShowNonClippingMeshes = probablyInThirdPerson || !StableThirdPersonCamera.Enabled;
-        CameraHelpers.PlayerBodyHider.body.enabled = shouldShowNonClippingMeshes;
-        foreach (var meshRenderer in CameraHelpers.PlayerBodyHider.costumes)
-        {
-            meshRenderer.enabled = shouldShowNonClippingMeshes;
-        }
-    }
 
     [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.CharacterCam))]
     static bool CharacterCam_Prefix(MainCameraMovement __instance)
     {
-        if (CameraHelpers.ShouldSetUpCameras)
+        if (Cameras.ShouldSetUpCameras)
         {
-            CameraHelpers.SetUpComponents(__instance.gameObject);
-            __instance.cam.cam = CameraHelpers.DummyCamera;
+            Cameras.SetUpComponents(__instance.gameObject);
+            __instance.cam.cam = Cameras.DummyCamera;
         }
         // If we shouldn't set them up, and we also HAVEN'T set them up, let the game code run like normal
-        else if (!CameraHelpers.HasSetUpCameras)
+        else if (!Cameras.HasSetUpCameras)
         {
             return true;
         }
         // Call this before the early return to ensure the meshes get re-enabled if StableCamera is disabled in-game
         //ConditionallyDisableMeshRenderers(__instance);
 
-        ConditionallyDisableMeshRenderers(__instance);
-        // CameraHelpers.FollowCamera.enabled = camsEnabled;
-        // CameraHelpers.ClimbCamera.enabled = camsEnabled;
-        //CameraHelpers.FirstPersonCamera.enabled = !StableThirdPersonCamera.Enabled;
-        //Cinemachine.BrainCamera.gameObject.SetActive(camsEnabled);
-        //MainCamera.instance.cam.enabled = !camsEnabled;
-        // if (!StableThirdPersonCamera.Config.Enabled.Value)
-        // {
-        //     
-        //     // FollowCamera.Priority = int.MinValue;
-        //     // ClimbCamera.Priority = int.MinValue;
-        //     return true;
-        // }
-
         if (Character.localCharacter == null) return false;
 
-        var characterState = Character.localCharacter.data;
-        var playerIsClimbing = characterState != null 
-            && (characterState.isClimbing || characterState.isRopeClimbing || characterState.isVineClimbing);
-        CameraHelpers.UpdateVCamPriorities(playerIsClimbing);
         //     && !(characterState.isRopeClimbing || characterState.isVineClimbing);
         __instance.cam.cam.fieldOfView = __instance.GetFov();
         
@@ -148,19 +48,6 @@ internal static class MainCameraMovementPatch
 
             // Apply ragdollCam rotation
             __instance.physicsRot = Quaternion.Lerp(__instance.physicsRot, Character.localCharacter.GetBodypartRig(BodypartType.Head).transform.rotation, Time.deltaTime * 10f);
-            // Changed
-            // if (!StableCamera.Config.ThirdPersonRagdoll.Value)
-            // {
-            //     SubstituteTransform.rotation = Quaternion.Lerp(
-            //         SubstituteTransform.rotation,
-            //         __instance.physicsRot,
-            //         __instance.ragdollCam * StableCamera.Config.DizzyEffectStrength.Value // Changed
-            //     );
-            // }
-
-            // Changed
-            // var shakeRotation = Quaternion.Euler(GamefeelHandler.instance.GetRotation());
-            // SubstituteTransform.Rotate(Quaternion.identity.eulerAngles, Space.World); 
         }
 
         Vector3 cameraPos = Character.localCharacter.GetCameraPos(__instance.GetHeadOffset());
@@ -184,7 +71,7 @@ internal static class MainCameraMovementPatch
     [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.GetFov))]
     static bool GetFov_Prefix(MainCameraMovement __instance, ref float __result)
     {
-        if (!CameraHelpers.HasSetUpCameras) return true;
+        if (!Cameras.HasSetUpCameras) return true;
         if (Character.localCharacter == null) return true;
 
         float num = __instance.fovSetting.Value;
@@ -206,7 +93,7 @@ internal static class MainCameraMovementPatch
     [HarmonyPrefix, HarmonyPatch(typeof(Character), nameof(Character.GetCameraPos))]
     static bool GetCameraPos_Prefix(Character __instance, ref Vector3 __result, float forwardOffset)
     {
-        if (!CameraHelpers.HasSetUpCameras) return true;
+        if (!Cameras.HasSetUpCameras) return true;
 
         __result = GetCameraAnchor(__instance, forwardOffset);
 

@@ -46,6 +46,7 @@ public class StableThirdPersonCamera : BaseUnityPlugin
             Config.Enabled.Value = !Config.Enabled.Value;
             OnToggleEnabled(Config.Enabled.Value);
         }
+        // TODO: Ensure camera config values stay up to date with in-game config changes
     }
 
     private void OnToggleEnabled(bool enabled)
