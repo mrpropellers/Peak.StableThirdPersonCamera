@@ -7,7 +7,7 @@ namespace Linkoid.Peak.StableCamera;
 
 internal static class RagdollExtensions
 {
-    public static Vector3 CenterOfMass(this CharacterRagdoll ragdoll)
+    public static Vector3 WorldCenterOfMass(this CharacterRagdoll ragdoll)
     {
         Vector3 positionSum = Vector3.zero;
         float massSum = 0.0f;
