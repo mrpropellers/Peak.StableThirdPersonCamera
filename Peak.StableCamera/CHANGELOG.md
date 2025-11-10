@@ -1,3 +1,4 @@
+* 1.3.1 - Bugfix for v1.40+
 * 1.3 - Improved Stabilized Tracking
     * Camera is now prevented from clipping through walls when stabilized tracking is enabled.
     * Improved stabilized tracking to reduce camera stutter with low tracking power.

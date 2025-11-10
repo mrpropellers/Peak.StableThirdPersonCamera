@@ -1,6 +1,8 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using System.Collections;
+using System.Linq.Expressions;
 using UnityEngine;
 
 namespace Linkoid.Peak.StableCamera
@@ -51,12 +53,32 @@ namespace Linkoid.Peak.StableCamera
         {
             Logger.LogInfo($"Stable Camera Enabled: {Config.Enabled.Value}");
 
-            var log = Object.FindObjectOfType<PlayerConnectionLog>();
-            if (log == null) return;
+            QueueLogMessage($"<userColor>Stable Camera</color> has been {(enabled ? "<joinedColor>" : "<leftColor>")}{(enabled ? "enabled" : "disabled")}</color>");
+        }
 
-            log.AddMessage($"{log.GetColorTag(log.userColor)}Stable Camera</color> has been {log.GetColorTag(enabled ? log.joinedColor : log.leftColor)}{(enabled ? "enabled" : "disabled")}</color>");
-            //if (enabled && log.sfxJoin) log.sfxJoin.Play();
-            //if (!enabled && log.sfxLeave) log.sfxLeave.Play();
+        public static void QueueLogMessage(string message, bool sfxJoin = false, bool sfxLeave = false, float delay = -1)
+        {
+            Instance.StartCoroutine(Instance.QueueLogMessageRoutine(message, sfxJoin, sfxLeave, delay));
+        }
+
+        private IEnumerator QueueLogMessageRoutine(string message, bool sfxJoin = false, bool sfxLeave = false, float delay = -1)
+        {
+            PlayerConnectionLog log;
+            while ((log = Object.FindObjectOfType<PlayerConnectionLog>()) is null)
+            {
+                yield return null;
+            }
+
+            if (delay >= 0) yield return new WaitForSeconds(delay);
+
+            message = message.Replace("<userColor>", log.GetColorTag(log.userColor));
+            message = message.Replace("<joinedColor>", log.GetColorTag(log.joinedColor));
+            message = message.Replace("<leftColor>", log.GetColorTag(log.leftColor));
+
+            log.AddMessage(message);
+
+            if (sfxJoin) log.sfxJoin?.Play();
+            if (sfxLeave) log.sfxLeave?.Play();
         }
     }
 }

@@ -40,5 +40,5 @@ in the BepInEx folder or in the mod manager.
 
 ## Bugs / Contact
 The fastest way to contact me is on Discord.
-You can find me in the Lethal Company Modding or R.E.P.O. Modding Discord servers,
+You can find me in the Lethal Company Modding or PEAK Modding Discord servers,
 or in my [Deja Drift Discord Server](https://discord.gg/yKwt2AWcGF)

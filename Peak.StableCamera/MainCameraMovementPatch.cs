@@ -15,7 +15,7 @@ internal static class MainCameraMovementPatch
 
         if (Character.localCharacter == null)
             // The orginal method returns here, but let it run anyway for better compatability with other mods.
-            return true; 
+            return true;
 
         __instance.cam.cam.fieldOfView = __instance.GetFov();
         if (Character.localCharacter == null || Character.localCharacter == null) return true; // Same as above.
@@ -24,7 +24,7 @@ internal static class MainCameraMovementPatch
         if (Character.localCharacter.data.lookDirection != Vector3.zero)
         {
             __instance.transform.rotation = Quaternion.LookRotation(Character.localCharacter.data.lookDirection);
-            float ragdollCamControl = 1f - Character.localCharacter.data.currentRagdollControll;
+            float ragdollCamControl = 1f - Character.localCharacter.data.GetCurrentRagdollControll();
 
             // Update ragdollCam value
             if (ragdollCamControl > __instance.ragdollCam)
