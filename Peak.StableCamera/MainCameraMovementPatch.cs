@@ -8,54 +8,9 @@ namespace Linkoid.Peak.StableCamera;
 [HarmonyPatch(typeof(MainCameraMovement))]
 internal static class MainCameraMovementPatch
 {
-    static HideTheBody? PlayerBodyHider;
-
-    static void ConditionallyDisableMeshRenderers(MainCameraMovement mainCamera)
-    {
-        // Roughly estimated value for when we're far enough into the ragdoll cam that we should start seeing the player body
-        const float ragdollCamThreshold = 0.35f;
-        
-        if (PlayerBodyHider == null)
-        {
-            // Fetch this component because it has direct references to all the renderers we care about
-            PlayerBodyHider = Character.localCharacter.GetComponentInChildren<HideTheBody>();
-            if (PlayerBodyHider == null)
-                return;
-        }
-        
-        // Turn body rendering off IFF we are using the stable cam AND we're not passed out (putting us in 3rd person camera)
-        var characterData = Character.localCharacter?.data;
-        bool probablyInThirdPerson = false;
-        if (characterData != null)
-        {
-            var probablyInRagdollCam = StableCamera.Config.ThirdPersonRagdoll.Value && mainCamera.ragdollCam > ragdollCamThreshold;
-            probablyInThirdPerson = probablyInRagdollCam ||
-                characterData.passedOut || characterData.fullyPassedOut || characterData.dead;
-        }
-        var shouldHideMeshes = StableCamera.Config.Enabled.Value 
-            && !probablyInThirdPerson;
-        
-        PlayerBodyHider.headRend.enabled = !shouldHideMeshes;
-        PlayerBodyHider.sash.enabled = !shouldHideMeshes;
-        foreach (var hatRenderer in PlayerBodyHider.refs.playerHats)
-        {
-            hatRenderer.enabled = !shouldHideMeshes;
-        }
-
-        var shouldHideBody = shouldHideMeshes && StableCamera.Config.HidePlayerMesh.Value;
-        PlayerBodyHider.body.enabled = !shouldHideBody;
-        foreach (var meshRenderer in PlayerBodyHider.costumes)
-        {
-            meshRenderer.enabled = !shouldHideBody;
-        }
-    }
-    
     [HarmonyPrefix, HarmonyPatch(nameof(MainCameraMovement.CharacterCam))]
     static bool CharacterCam_Prefix(MainCameraMovement __instance)
     {
-        // Call this before the early return to ensure the meshes get re-enabled if StableCamera is disabled in-game
-        ConditionallyDisableMeshRenderers(__instance);
-        
         if (!StableCamera.Config.Enabled.Value) return true;
 
         if (Character.localCharacter == null)
